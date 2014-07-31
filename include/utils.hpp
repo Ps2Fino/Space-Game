@@ -5,7 +5,7 @@
 #include <SDL.h>
 #include <string>
 
-std::string getResourcePath(const std::string &subDir = "")
+static std::string getResourcePath(const std::string &subDir = "")
 {
 #ifdef _WIN32
 	const char	PATH_SEP = '\\'

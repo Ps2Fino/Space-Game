@@ -6,6 +6,8 @@
 
 #include "Sprite.hpp"
 
+#define DEFAULT_VELOCITY 5
+
 /**
  * This Ship class is a special
  * child of Sprite. It allows the player to move up
@@ -15,14 +17,19 @@ class Ship : public Sprite
 {
 public:
 
-	Ship(int width, int height, SDL_Renderer *renderer, std::string &imagePath);
+	Ship(SDL_Renderer *renderer, std::string &imagePath,
+			int width = 64, int height = 48,
+			int x = 20, int y = 320);
 	~Ship();
 
 	void update(EVENT ev);
 	void draw();
 
+	int getVelocity() { return mVelocity; }
+	void setVelocity(int vel) { mVelocity = vel; }
+
 private:
-	// TODO: Implement this
+	int mVelocity;
 };
 
 #endif

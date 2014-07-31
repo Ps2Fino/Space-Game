@@ -1,10 +1,9 @@
 #include "Ship.hpp"
 
-Ship::Ship(int width, int height, SDL_Renderer *renderer, std::string &imagePath) : Sprite(renderer, imagePath)
+Ship::Ship(SDL_Renderer *renderer, std::string &imagePath,
+				int width, int height, int x, int y) 
+					: Sprite(renderer, imagePath, width, height, x, y), mVelocity(DEFAULT_VELOCITY)
 {
-	setSize(width, height);
-	mX_pos = 20;
-	mY_pos = 240;
 }
 
 Ship::~Ship()
@@ -16,11 +15,11 @@ void Ship::update(EVENT ev)
 	switch(ev)
 	{
 		case UP:
-			mY_pos -= 10;
+			mY_pos -= 1 * mVelocity;
 			break;
 
 		case DOWN:
-			mY_pos += 10;
+			mY_pos += 1 * mVelocity;
 			break;
 
 		default:

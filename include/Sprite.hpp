@@ -11,6 +11,7 @@
  */
 
  enum EVENT {
+ 	NONE,
  	UP,
  	DOWN,
  	LEFT,
@@ -25,12 +26,13 @@
 class Sprite
 {
 public:
-	Sprite(SDL_Renderer *renderer, std::string &surface_image_path);
+	Sprite(SDL_Renderer *renderer, std::string &surface_image_path, 
+				int width = 640, int height = 480, int x = 0, int y = 0);
 	~Sprite();
 
 	void load_surface(SDL_Renderer *renderer, std::string &surface_image_path, bool replace);
 
-	void setSize(int width, int height) { mShape.w = width; mShape.h = height; } // pure virtual for setting the size
+	void setSize(int width, int height) { mShape.w = width; mShape.h = height; } // set the size of the rect
 	SDL_Rect getSize() { return mShape; } // return the rect for the sprite
 
 	virtual void update(EVENT ev) =0; // pure virtual method for moving the sprite
