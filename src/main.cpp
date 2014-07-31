@@ -3,7 +3,8 @@
 #include <iostream>
 #include "utils.hpp"
 
-using namespace std;
+#include "Sprite.hpp"
+#include "Ship.hpp"
 
 int main (int argc, char **argv)
 {
@@ -43,12 +44,73 @@ int main (int argc, char **argv)
 		return 1;
 	}
 
-	// Draw the texture and wait for 2 seconds
-	SDL_RenderClear(renderer);
-	SDL_RenderCopy(renderer, bg_tex, NULL, NULL);
-	SDL_RenderPresent(renderer);
+	// Create a little ship sprite and animate it
+	std::string shipImagePath = getResourcePath() + "ship.png";
+	Ship myShip(64, 48, renderer, shipImagePath);
+	EVENT myEvent = UP;
 
-	SDL_Delay(2000);
+	// Create a little game loop. The ship can move up or down
+	// and escape will exit the game
+	bool running = true;
+	SDL_Event event;
+	while(running)
+	{
+		while (SDL_PollEvent(&event))
+		{
+			switch(event.type)
+			{
+				case SDL_KEYDOWN:
+					if (event.key.keysym.sym == SDLK_UP)
+					{
+						myEvent = UP;
+						// std::cout << "Event is now up" << std::endl;
+					}
+					else if (event.key.keysym.sym == SDLK_DOWN)
+					{
+						myEvent = DOWN;
+						// std::cout << "Event is now down" << std::endl;
+					}
+					else if (event.key.keysym.sym == SDLK_ESCAPE)
+					{
+						running = false;
+					}
+					else
+					{
+						myEvent = LEFT;
+					}
+					myShip.update(myEvent);
+					break;
+
+				case SDL_QUIT:
+					running = false;
+					break;
+
+				default:
+					break;
+			}
+		}
+		// myShip.update(myEvent); // This gives a cool effect
+
+		// Now draw
+		SDL_RenderClear(renderer);
+		SDL_RenderCopy(renderer, bg_tex, NULL, NULL);
+		myShip.draw();
+		SDL_RenderPresent(renderer);
+	}
+
+	// for (int i=0; i < 200; ++i)
+	// {
+	// 	// First update the little guy
+	// 	myShip.update(myEvent);
+
+	// 	// Now blitz him
+	// 	SDL_RenderClear(renderer);
+	// 	SDL_RenderCopy(renderer, bg_tex, NULL, NULL);
+	// 	myShip.draw();
+	// 	SDL_RenderPresent(renderer);
+	// }
+
+	// SDL_Delay(2000);
 
 
 	// Cleanup
