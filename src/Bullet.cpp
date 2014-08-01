@@ -2,11 +2,10 @@
 
 Bullet::Bullet(SDL_Renderer *renderer, SDL_Texture *bulletTexture, 
 			int type, int width, int height, int x, int y)
-				: Sprite(renderer, width, height, x, y)
+				: Sprite(renderer, width, height, x, y),
+				 mVelocity(DEFAULT_BULLET_VELOCITY),
+				 mIsActive(false)
 {
-	mVelocity = 5;
-	mIsActive = false;
-
 	// Create the source rectangle for the texture
 	switch (type)
 	{
@@ -42,6 +41,9 @@ void Bullet::activate(int xPos, int yPos)
 		mIsActive = true;
 		mX_pos = xPos;
 		mY_pos = yPos;
+
+		mShape.x = mX_pos;
+		mShape.y = mY_pos;
 	}
 
 }
@@ -52,6 +54,7 @@ void Bullet::update(GAME_EVENT ev)
 	if (mIsActive)
 	{
 		mX_pos += 1 * mVelocity;
+		mShape.x = mX_pos;
 		if (mX_pos > 640)
 			mIsActive = false;
 	}

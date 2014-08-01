@@ -4,11 +4,12 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <vector> // For the bullets
+#include "boost/smart_ptr.hpp" // smart pointers for the bullets
 
 #include "Sprite.hpp"
 #include "Bullet.hpp"
 
-#define DEFAULT_VELOCITY 5
+#define DEFAULT_SHIP_VELOCITY 5
 #define NUMBER_BULLETS 5
 
 /**
@@ -30,6 +31,7 @@ public:
 
 	int getVelocity() { return mVelocity; }
 	void setVelocity(int vel) { mVelocity = vel; }
+	void fireBullet();
 
 	void setMovementBoundary(int top, int bottom); // This is the most the ship can move up and down
 
@@ -39,7 +41,7 @@ private:
 
 	// An array of Bullets
 	SDL_Texture *mBulletTexture;
-	std::vector<Bullet*> bullets;
+	boost::scoped_ptr<Bullet> mBullet;
 };
 
 #endif

@@ -9,11 +9,11 @@
 #include "Bullet.hpp"
 
 int initSDL(SDL_Window **window, SDL_Renderer **renderer);
-void handleInput(bool &running, GAME_EVENT &playerEvent);
+// void handleInput(bool &running, GAME_EVENT &playerEvent);
+void handleInput(bool &running, GAME_EVENT &playerEvent, bool &fire);
 void updateEnemies(Sprite *enemies); // Update the array of sprites
 void handleCollisions(Ship &player, Sprite *enemies); // Simple collision checker for everything
-// void drawEntities(SDL_Renderer *renderer, Ship &player, Background &bg, Sprite *enemies);
-void drawEntities(SDL_Renderer *renderer, Ship &player, Background &bg, Sprite *enemies, Bullet &bullet);
+void drawEntities(SDL_Renderer *renderer, Ship &player, Background &bg, Sprite *enemies);
 
 #define PLAY_LEVEL 0
 const char *levels[4] = {
@@ -59,13 +59,6 @@ int main (int argc, char **argv)
 	std::string bulletImagePath = getResourcePath() + "img/bullet_strip.png";
 	Ship player(renderer, shipImagePath, bulletImagePath);
 
-	if (bulletTexture == nullptr)
-	{
-		std::cout << "The bullet texture is nullptr" << std::endl;
-	}
-
-	Bullet bullet(renderer, bulletTexture);
-
 	// Create the enemy array
 
 	// TODO: Populate the array of enemies with some enemies
@@ -73,28 +66,29 @@ int main (int argc, char **argv)
 	// Set the boundary for the ship
 	player.setMovementBoundary(0, 480);
 
-	// Jump into the game loop
+	// Some variables necessary for the game loop
 	bool running = true;
 	GAME_EVENT gameEvent; // For controlling the ship
-	bool bulletIsActive = false;;
+	bool fire = false;
+
 	while (running)
-	{
-		handleInput(running, gameEvent);
+	{		
+		// handleInput(running, gameEvent);
+		handleInput(running, gameEvent, fire);
 
 		// Update the player and other entities
+		if (fire) player.fireBullet();
 		player.update(gameEvent);
-		bullet.update();
 		updateEnemies(NULL);
 
 		// Check collisions here
 		handleCollisions(player, NULL);
 
 		// Draw stuff
-		drawEntities(renderer, player, levelBG, NULL, bullet);
+		drawEntities(renderer, player, levelBG, NULL);
 	}
 
 	// Cleanup everything. The ship, background and enemies will clean themselves
-	SDL_DestroyTexture(bulletTexture);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
@@ -151,14 +145,13 @@ void handleCollisions(Ship &player, Sprite *enemies)
 	// TODO: Implement this
 }
 
-void drawEntities(SDL_Renderer *renderer, Ship &player, Background &bg, Sprite *enemies, Bullet &bullet)
+void drawEntities(SDL_Renderer *renderer, Ship &player, Background &bg, Sprite *enemies)
 {
 	// Now draw the frame
 	SDL_RenderClear(renderer);
 
 	bg.draw();
 	player.draw();
-	bullet.draw();
 	// TODO: Implement enemy drawing
 
 	SDL_RenderPresent(renderer);
@@ -169,7 +162,7 @@ void drawEntities(SDL_Renderer *renderer, Ship &player, Background &bg, Sprite *
   * 4 buttons as input: Up, down, space bar and escape
   * This function checks which one was pressed and acts accordingly
   */
-void handleInput(bool &running, GAME_EVENT &playerEvent)
+void handleInput(bool &running, GAME_EVENT &playerEvent, bool &fire)
 {
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
@@ -193,7 +186,7 @@ void handleInput(bool &running, GAME_EVENT &playerEvent)
 
 					case SDLK_SPACE:
 						// Fire a bullet
-						playerEvent = FIRE;
+						fire = true;
 						break;
 				}
 				break;
@@ -201,6 +194,10 @@ void handleInput(bool &running, GAME_EVENT &playerEvent)
 			case SDL_KEYUP:
 				switch (event.key.keysym.sym)
 				{
+					case SDLK_SPACE:
+						fire = false;
+						break;
+
 					default:
 						playerEvent = NONE;
 						break;

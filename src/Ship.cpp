@@ -2,22 +2,20 @@
 
 Ship::Ship(SDL_Renderer *renderer, std::string &imagePath, std::string &bulletImagePath,
 				int width, int height, int x, int y) 
-					: Sprite(renderer, width, height, x, y), mVelocity(DEFAULT_VELOCITY)
+					: Sprite(renderer, width, height, x, y), 
+					mVelocity(DEFAULT_SHIP_VELOCITY),
+					mBullet(new Bullet(renderer))
 {
 	loadTexture(renderer, imagePath, false);
 
-	// Let's create our bullets here
+	// Let's create our bullet here
 	mBulletTexture = IMG_LoadTexture(renderer, bulletImagePath.c_str());
-	for (int i = 0; i < NUMBER_BULLETS; ++i)
-		mBullets.push_back(new Bullet(mRenderer, mBulletTexture));
-
+	mBullet.get()->sharedTexture = mBulletTexture;
 } // See the Sprite class
 
 Ship::~Ship()
 {
 	SDL_DestroyTexture(mTex);
-	for (int i = 0; i < NUMBER_BULLETS; ++i)
-		mBullets.era
 	SDL_DestroyTexture(mBulletTexture);
 
 } // See the Sprite class
@@ -26,6 +24,11 @@ void Ship::setMovementBoundary(int top, int bottom)
 {
 	mTopBoundary = top;
 	mBottomBoundary = bottom - mShape.h;
+}
+
+void Ship::fireBullet()
+{
+	mBullet.get()->activate(mX_pos, mY_pos);
 }
 
 void Ship::update(GAME_EVENT ev)
@@ -39,7 +42,7 @@ void Ship::update(GAME_EVENT ev)
 
 		case DOWN:
 			mY_pos += 1 * mVelocity;
-			break;
+			break;			
 
 		default:
 			break;
@@ -55,10 +58,14 @@ void Ship::update(GAME_EVENT ev)
 	{
 		mY_pos = tempY;
 	}
+
+	// Call update on the bullet
+	mBullet.get()->update();
 }
 
 void Ship::draw()
 {
 	// Just draw the surface at the current co-ordinates
 	SDL_RenderCopy(mRenderer, mTex, NULL, &mShape);
+	mBullet.get()->draw();
 }

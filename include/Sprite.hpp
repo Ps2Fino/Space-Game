@@ -15,6 +15,7 @@
  	UP,
  	DOWN,
  	LEFT,
+ 	FIRE,
  	// RIGHT, // For the moment, we can't ever move to the right of the screen
  };
 
@@ -42,7 +43,7 @@ public:
 	void setPosition(int xPos, int yPos) { mShape.x = xPos; mShape.y = yPos; }
 	SDL_Rect getPosition() { return mShape; }
 
-	virtual void update(GAME_EVENT ev = 0) =0; // pure virtual method for moving the sprite
+	virtual void update(GAME_EVENT ev  = NONE) =0; // pure virtual method for moving the sprite
 	virtual void draw() =0; // This is the function to call in the render part of the game loop
 
 protected:
