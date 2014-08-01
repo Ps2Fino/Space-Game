@@ -2,9 +2,26 @@
 
 App::App()
 {
+	mRunning = true;
 }
 
 App::~App()
+{
+	// delete mPlayer;
+	// delete mBg;
+
+	// // Cleanup
+	// SDL_DestroyRenderer(mRenderer);
+	// SDL_DestroyWindow(mWindow);
+	// SDL_Quit();
+
+	// mPlayer = NULL;
+	// mBg = NULL;
+	// mRenderer = NULL;
+	// mWindow = NULL;
+}
+
+void App::CleanUp()
 {
 	delete mPlayer;
 	delete mBg;
@@ -23,11 +40,10 @@ App::~App()
 /**
   * This method is responsible for inititiating the SDL 
   */
-int App::Execute()
+void App::Init()
 {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
 		std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
-		return 1;
 	}
 
 	// Create the window that will hold our game
@@ -36,7 +52,6 @@ int App::Execute()
 	{
 		std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
 		SDL_Quit();
-		return 1;
 	}
 
 	// Next, we need a renderer to render the assets to the screen
@@ -46,11 +61,12 @@ int App::Execute()
 		std::cout << "SDL_CreateRenderer Error: " << SDL_GetError() << std::endl;
 		SDL_DestroyWindow(mWindow);
 		SDL_Quit();
-		return 1;
 	}
 
 	InitGameObjects();
-	return 0;
+
+	// install the timer
+	mTimer = SDL_AddTimer(30, LoopTimer, this);
 }
 
 void App::InitGameObjects()
@@ -64,14 +80,38 @@ void App::InitGameObjects()
 	mPlayer = new Ship(mRenderer, shipImagePath);
 }
 
-int App::ProcessInput()
+Uint32 App::LoopTimer(Uint32 interval, void *param)
+{
+    // Create a user event to call the game loop.
+    SDL_Event event;
+    
+    event.type = SDL_USEREVENT;
+    event.user.code = RUN_GAME_LOOP;
+    event.user.data1 = 0;
+    event.user.data2 = 0;
+    
+    SDL_PushEvent(&event);
+    
+    return interval;
+}
+
+void App::EventLoop()
+{
+	ProcessInput();
+}
+
+void App::ProcessInput()
 {
 	SDL_Event event;
 	EVENT myEvent; // For controlling the ship
-	while (SDL_PollEvent(&event))
+	while (mRunning && SDL_PollEvent(&event))
 	{
 		switch(event.type)
 		{
+			case SDL_USEREVENT:
+				HandleUserEvent(&event);
+				break;
+
 			case SDL_KEYDOWN:
 				switch (event.key.keysym.sym)
 				{
@@ -107,16 +147,27 @@ int App::ProcessInput()
 		}
 	}
 	mPlayer->update(myEvent);
-	return 0;
 }
 
-int App::ProcessEvents()
+void App::HandleUserEvent(SDL_Event *event)
+{
+	switch (event->user.code)
+	{
+		case RUN_GAME_LOOP:
+			UpdateScene();
+			break;
+
+		default:
+			break;
+	}
+}
+
+void App::ProcessEvents()
 {
 	// TODO: Implement this
-	return 0;
 }
 
-int App::UpdateScene()
+void App::UpdateScene()
 {
 	SDL_RenderClear(mRenderer);
 
@@ -126,16 +177,4 @@ int App::UpdateScene()
 	// TODO: Draw other game objects here
 
 	SDL_RenderPresent(mRenderer);
-	return 0;
-}
-
-int App::Loop()
-{
-	while (mRunning)
-	{
-		ProcessInput();
-		ProcessEvents();
-		UpdateScene();
-	}
-	return 0;
 }

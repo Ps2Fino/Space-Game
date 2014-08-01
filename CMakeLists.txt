@@ -21,6 +21,9 @@ file (GLOB ROCKET_SHOOTER_SRC
 )
 list (APPEND ROCKET_SHOOTER_SOURCE ${ROCKET_SHOOTER_SRC})
 
+# Remove the App sources for the moment
+list (REMOVE_ITEM ROCKET_SHOOTER_SOURCE ${ROCKET_SHOOTER_SOURCE_DIR}/src/App.cpp)
+
 # Include the headers
 include_directories (${ROCKET_SHOOTER_SOURCE_DIR}/include)
 
