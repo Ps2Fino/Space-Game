@@ -49,9 +49,14 @@ include_directories (${SDL2_INCLUDE_DIR})
 list (APPEND ROCKET_SHOOTER_REQUIRED_LIBS ${SDL2_LIBRARY})
 
 # Search for SDL Image and append it to the list
-find_package (SDL2_image REQUIRED)
+find_package (SDL2_IMAGE REQUIRED)
 include_directories (${SDL2_IMAGE_INCLUDE_DIR})
 list (APPEND ROCKET_SHOOTER_REQUIRED_LIBS ${SDL2_IMAGE_LIBRARY})
+
+# Search for SDL TrueType Font and append it to the list
+find_package (SDL2_TTF REQUIRED)
+include_directories (${SDL2_TTF_INCLUDE_DIR})
+list (APPEND ROCKET_SHOOTER_REQUIRED_LIBS ${SDL2_TTF_LIBRARY})
 
 # Tell cmake to link against the SDL library
 target_link_libraries (rocket_shooter ${ROCKET_SHOOTER_REQUIRED_LIBS})

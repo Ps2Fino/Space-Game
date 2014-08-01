@@ -1,5 +1,7 @@
 #include "Ship.hpp"
 
+#include <random> // For random bullet colors
+
 Ship::Ship(SDL_Renderer *renderer, std::string &imagePath, std::string &bulletImagePath,
 				int width, int height, int x, int y) 
 					: Sprite(renderer, width, height, x, y), 
@@ -8,11 +10,19 @@ Ship::Ship(SDL_Renderer *renderer, std::string &imagePath, std::string &bulletIm
 {
 	loadTexture(renderer, imagePath, false);
 
+	// Grab a uni distro generator
+	std::random_device rd; // obtain a random number from hardware
+    std::mt19937 eng(rd()); // seed the generator
+    std::uniform_int_distribution<> distr(0, 2); // define the range
+
 	// Let's create our bullet here
 	mBulletTexture = IMG_LoadTexture(renderer, bulletImagePath.c_str());
 	for (int i = 0; i < NUMBER_BULLETS; ++i)
 	{
-		mBullets.push_back(BulletPointer(new Bullet(renderer)));
+		// Vary the bullet colors
+		int bulletColor = distr(eng);
+
+		mBullets.push_back(BulletPointer(new Bullet(renderer, bulletColor))); // Make yellow bullets
 		mBullets.back().get()->sharedTexture = mBulletTexture;
 	}
 } // See the Sprite class

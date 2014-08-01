@@ -3,3 +3,4 @@ All images were downloaded from OpenGameArt.org
 Level backgrounds are here: http://opengameart.org/content/space-backgrounds-3
 Ship sprite is here: http://opengameart.org/content/set-faction9-spaceships
 Bullet sprites are here: http://opengameart.org/content/sci-fi-space-simple-bullets
+Asteroid sprites are here: http://opengameart.org/content/low-poly-rocks

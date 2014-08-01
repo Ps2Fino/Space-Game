@@ -19,8 +19,8 @@ class Bullet : public Sprite
 {
 public:
 
-	Bullet(SDL_Renderer *renderer, SDL_Texture *bulletTexture = NULL, 
-				int type = 0, int width = BULLET_WIDTH, int height = BULLET_HEIGHT,
+	Bullet(SDL_Renderer *renderer, int type = 0, 
+				int width = BULLET_WIDTH, int height = BULLET_HEIGHT,
 				int x = 320, int y = 240);
 	~Bullet();
 

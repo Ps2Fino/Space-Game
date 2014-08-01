@@ -1,8 +1,6 @@
 #ifndef APP_HPP
 #define APP_HPP
 
-
-
 /**
   * This is the main class for handling the
   * SDL inititation code and the main game loop

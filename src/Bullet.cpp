@@ -1,7 +1,7 @@
 #include "Bullet.hpp"
 
-Bullet::Bullet(SDL_Renderer *renderer, SDL_Texture *bulletTexture, 
-			int type, int width, int height, int x, int y)
+Bullet::Bullet(SDL_Renderer *renderer, int type, 
+				int width, int height, int x, int y)
 				: Sprite(renderer, width, height, x, y),
 				mIsActive(false),
 				mVelocity(DEFAULT_BULLET_VELOCITY)
@@ -10,24 +10,28 @@ Bullet::Bullet(SDL_Renderer *renderer, SDL_Texture *bulletTexture,
 	switch (type)
 	{
 		case 0:
+			std::cout << "Using the 0th (red) bullet" << std::endl;
 			mTextureRegion.x = 0;
 			break;
 
 		case 1:
+		std::cout << "Using the 1st (light red) bullet" << std::endl;
 			mTextureRegion.x = 95;
 			break;
 
 		case 2:
+			std::cout << "Using the 2th (yellow) bullet" << std::endl;
 			mTextureRegion.x = 190;
+			break;
 
 		default:
+			std::cout << "Using the 0th (red) bullet" << std::endl;
 			mTextureRegion.x = 0; // Default to the first bullet
+			break;
 	}
 	mTextureRegion.y = 0;
 	mTextureRegion.w = BULLET_WIDTH;
 	mTextureRegion.h = BULLET_HEIGHT;
-
-	sharedTexture = bulletTexture;
 }
 
 Bullet::~Bullet()
@@ -62,12 +66,6 @@ void Bullet::update(GAME_EVENT ev)
 
 void Bullet::draw()
 {
-	// The difference here is that we draw a particular region of the texture
-	// std::cout << "The bullet shape: X: " << mShape.x
-	// 			<< "\tY: " << mShape.y
-	// 			<< "\tWidth: " << mShape.w
-	// 			<< "\tHeight: " << mShape.h
-	// 			 << std::endl;
 	if (mIsActive)
 		SDL_RenderCopy(mRenderer, sharedTexture, &mTextureRegion, &mShape);
 }

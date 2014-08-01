@@ -11,11 +11,12 @@
 #include "Bullet.hpp"
 
 int initSDL(SDL_Window **window, SDL_Renderer **renderer);
-// void handleInput(bool &running, GAME_EVENT &playerEvent);
 void handleInput(bool &running, GAME_EVENT &playerEvent, bool &fire);
 void updateEnemies(Sprite *enemies); // Update the array of sprites
 void handleCollisions(Ship &player, Sprite *enemies); // Simple collision checker for everything
 void drawEntities(SDL_Renderer *renderer, Ship &player, Background &bg, Sprite *enemies);
+
+int loadLevel(int argc, char **argv);
 
 #define PLAY_LEVEL 0
 const char *levels[4] = {
@@ -35,19 +36,11 @@ int main (int argc, char **argv)
 {
 	// Get the level we want to play as
 	int level = PLAY_LEVEL;
-	if (argc == 2)
-	{
-		level = atoi(argv[1]) - 1;
-		if (level >= 4
-			|| level < 0)
-		{
-			level = 0;
-		}
-	}
+	level = loadLevel(argc, argv);
 
+	// establish a window and rendering context
 	SDL_Window *window = NULL;
 	SDL_Renderer *renderer = NULL;
-
 	int status = initSDL(&window, &renderer);
 	if (status != 0)
 		return 1;
@@ -83,7 +76,6 @@ int main (int argc, char **argv)
 		handleInput(running, gameEvent, fire);
 
 		// Update the player and other entities
-
 		if (fire && (lastBulletTime + BULLET_INTERVAL <= SDL_GetTicks()))
 		{
 			lastBulletTime = SDL_GetTicks();
@@ -108,6 +100,21 @@ int main (int argc, char **argv)
 	window = NULL;	
 
 	return 0;
+}
+
+int loadLevel(int argc, char **argv)
+{
+	int level = 0;
+	if (argc == 2)
+	{
+		level = atoi(argv[1]) - 1;
+		if (level >= 4
+			|| level < 0)
+		{
+			level = 0;
+		}
+	}
+	return level;
 }
 
 int initSDL(SDL_Window **window, SDL_Renderer **renderer)
