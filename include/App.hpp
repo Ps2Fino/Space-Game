@@ -21,8 +21,8 @@ public:
 	App();
 	~App();
 
-	void Execute();
-	void Loop();
+	int Execute();
+	int Loop();
 
 private:
 

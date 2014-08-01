@@ -23,11 +23,11 @@ App::~App()
 /**
   * This method is responsible for inititiating the SDL 
   */
-void App::Execute()
+int App::Execute()
 {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
 		std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
-		return;
+		return 1;
 	}
 
 	// Create the window that will hold our game
@@ -36,7 +36,7 @@ void App::Execute()
 	{
 		std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
 		SDL_Quit();
-		return;
+		return 1;
 	}
 
 	// Next, we need a renderer to render the assets to the screen
@@ -46,11 +46,11 @@ void App::Execute()
 		std::cout << "SDL_CreateRenderer Error: " << SDL_GetError() << std::endl;
 		SDL_DestroyWindow(mWindow);
 		SDL_Quit();
-		return;
+		return 1;
 	}
 
 	InitGameObjects();
-	return;
+	return 0;
 }
 
 void App::InitGameObjects()
@@ -131,7 +131,7 @@ int App::UpdateScene()
 	return 0;
 }
 
-void App::Loop()
+int App::Loop()
 {
 	std::cout << "The main loop was entered" << std::endl;
 
@@ -145,5 +145,5 @@ void App::Loop()
 		UpdateScene();
 		std::cout << "Scene updated" << std::endl;
 	}
-	return;
+	return 0;
 }

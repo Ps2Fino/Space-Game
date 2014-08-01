@@ -8,11 +8,6 @@ int main (int argc, char **argv)
 {
 	App myApp;
 	myApp.Execute();
-#ifdef __APPLE__
-	dispatch_async(dispatch_get_main_queue(), ^{
-		myApp.Loop();
-	});
-#endif
-	return 0;
+	return myApp.Loop();
 	
 }
