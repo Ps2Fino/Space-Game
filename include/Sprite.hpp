@@ -10,7 +10,7 @@
  * how to update
  */
 
- enum EVENT {
+ enum GAME_EVENT {
  	NONE,
  	UP,
  	DOWN,
@@ -22,15 +22,19 @@
   * The Sprite class is an abstract class
   * It has an XY position as well as an SDL_Surface
   * that it uses to represent itself visually
+  *
+  * The class can load textures itself and store. Alternatively,
+  * the texture can just be set (many instances sharing the same texture)
   */
 class Sprite
 {
 public:
-	Sprite(SDL_Renderer *renderer, std::string &surface_image_path, 
-				int width = 640, int height = 480, int x = 0, int y = 0);
+	Sprite(SDL_Renderer *renderer, int width = 640, 
+				int height = 480, int x = 0, int y = 0);
 	~Sprite();
 
-	void load_surface(SDL_Renderer *renderer, std::string &surface_image_path, bool replace);
+	void loadTexture(SDL_Renderer *renderer, std::string &surface_image_path, bool replace);
+	void setTexture(SDL_Texture *texture) { mTex = texture; }
 
 	void setSize(int width, int height) { mShape.w = width; mShape.h = height; } // set the size of the rect
 	SDL_Rect getSize() { return mShape; } // return the rect for the sprite
@@ -38,7 +42,7 @@ public:
 	void setPosition(int xPos, int yPos) { mShape.x = xPos; mShape.y = yPos; }
 	SDL_Rect getPosition() { return mShape; }
 
-	virtual void update(EVENT ev) =0; // pure virtual method for moving the sprite
+	virtual void update(GAME_EVENT ev = 0) =0; // pure virtual method for moving the sprite
 	virtual void draw() =0; // This is the function to call in the render part of the game loop
 
 protected:

@@ -1,14 +1,26 @@
 #include "Ship.hpp"
 
-Ship::Ship(SDL_Renderer *renderer, std::string &imagePath,
+Ship::Ship(SDL_Renderer *renderer, std::string &imagePath, std::string &bulletImagePath,
 				int width, int height, int x, int y) 
-					: Sprite(renderer, imagePath, width, height, x, y), mVelocity(DEFAULT_VELOCITY)
+					: Sprite(renderer, width, height, x, y), mVelocity(DEFAULT_VELOCITY)
 {
-}
+	loadTexture(renderer, imagePath, false);
+
+	// Let's create our bullets here
+	mBulletTexture = IMG_LoadTexture(renderer, bulletImagePath.c_str());
+	for (int i = 0; i < NUMBER_BULLETS; ++i)
+		mBullets.push_back(new Bullet(mRenderer, mBulletTexture));
+
+} // See the Sprite class
 
 Ship::~Ship()
 {
-}
+	SDL_DestroyTexture(mTex);
+	for (int i = 0; i < NUMBER_BULLETS; ++i)
+		mBullets.era
+	SDL_DestroyTexture(mBulletTexture);
+
+} // See the Sprite class
 
 void Ship::setMovementBoundary(int top, int bottom)
 {
@@ -16,7 +28,7 @@ void Ship::setMovementBoundary(int top, int bottom)
 	mBottomBoundary = bottom - mShape.h;
 }
 
-void Ship::update(EVENT ev)
+void Ship::update(GAME_EVENT ev)
 {
 	int tempY = mY_pos;
 	switch(ev)

@@ -18,7 +18,7 @@ public:
 	Background(SDL_Renderer *renderer, std::string &imagePath);
 	~Background();
 
-	void update(EVENT ev);
+	void update(GAME_EVENT ev);
 	void draw();
 
 private:
