@@ -19,7 +19,7 @@ public:
 
 	Ship(SDL_Renderer *renderer, std::string &imagePath,
 			int width = 64, int height = 48,
-			int x = 20, int y = 320);
+			int x = 20, int y = 240);
 	~Ship();
 
 	void update(EVENT ev);
@@ -28,8 +28,11 @@ public:
 	int getVelocity() { return mVelocity; }
 	void setVelocity(int vel) { mVelocity = vel; }
 
+	void setMovementBoundary(int top, int bottom); // This is the most the ship can move up and down
+
 private:
 	int mVelocity;
+	int mTopBoundary, mBottomBoundary;
 };
 
 #endif

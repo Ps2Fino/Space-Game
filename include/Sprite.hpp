@@ -35,6 +35,9 @@ public:
 	void setSize(int width, int height) { mShape.w = width; mShape.h = height; } // set the size of the rect
 	SDL_Rect getSize() { return mShape; } // return the rect for the sprite
 
+	void setPosition(int xPos, int yPos) { mShape.x = xPos; mShape.y = yPos; }
+	SDL_Rect getPosition() { return mShape; }
+
 	virtual void update(EVENT ev) =0; // pure virtual method for moving the sprite
 	virtual void draw() =0; // This is the function to call in the render part of the game loop
 

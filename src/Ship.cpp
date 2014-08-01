@@ -10,8 +10,15 @@ Ship::~Ship()
 {
 }
 
+void Ship::setMovementBoundary(int top, int bottom)
+{
+	mTopBoundary = top;
+	mBottomBoundary = bottom - mShape.h;
+}
+
 void Ship::update(EVENT ev)
 {
+	int tempY = mY_pos;
 	switch(ev)
 	{
 		case UP:
@@ -26,9 +33,16 @@ void Ship::update(EVENT ev)
 			break;
 	}
 
-	// Update the box we live in
-	mShape.x = mX_pos;
-	mShape.y = mY_pos;
+	// Update the box we live in based on the boundary set
+	if (mY_pos > mTopBoundary
+			&& mY_pos < mBottomBoundary)
+	{
+		mShape.y = mY_pos;
+	}
+	else
+	{
+		mY_pos = tempY;
+	}
 }
 
 void Ship::draw()

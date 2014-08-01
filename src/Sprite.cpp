@@ -35,6 +35,7 @@ Sprite::Sprite(SDL_Renderer *renderer, std::string &surface_image_path,
 
 	// Set our size
 	setSize(width, height);
+	setPosition(mX_pos, mY_pos);
 }
 
 Sprite::~Sprite()

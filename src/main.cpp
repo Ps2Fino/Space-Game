@@ -39,6 +39,9 @@ int main (int argc, char **argv)
 	std::string shipImagePath = getResourcePath() + "ship.png";
 	Ship player(renderer, shipImagePath);
 
+	// Set the boundary for the ship
+	player.setMovementBoundary(0, 480);
+
 	// Jump into the game loop
 	bool running = true;
 	SDL_Event event;
