@@ -2,6 +2,8 @@
 #include <SDL_image.h> // For loading textures from pngs
 #include <iostream>
 
+#include "boost/shared_ptr.hpp"
+
 #include "Utils.hpp"
 #include "Sprite.hpp"
 #include "Ship.hpp"
@@ -71,13 +73,22 @@ int main (int argc, char **argv)
 	GAME_EVENT gameEvent; // For controlling the ship
 	bool fire = false;
 
+	// Have a delay for firing bullets
+	const signed int BULLET_INTERVAL = 300;
+	unsigned int lastBulletTime = 0;
+
 	while (running)
 	{		
 		// handleInput(running, gameEvent);
 		handleInput(running, gameEvent, fire);
 
 		// Update the player and other entities
-		if (fire) player.fireBullet();
+
+		if (fire && (lastBulletTime + BULLET_INTERVAL <= SDL_GetTicks()))
+		{
+			lastBulletTime = SDL_GetTicks();
+			player.fireBullet();
+		}
 		player.update(gameEvent);
 		updateEnemies(NULL);
 

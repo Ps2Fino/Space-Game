@@ -4,13 +4,15 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <vector> // For the bullets
-#include "boost/smart_ptr.hpp" // smart pointers for the bullets
+#include "boost/shared_ptr.hpp" // smart pointers for the bullets
 
 #include "Sprite.hpp"
 #include "Bullet.hpp"
 
 #define DEFAULT_SHIP_VELOCITY 5
 #define NUMBER_BULLETS 5
+
+typedef boost::shared_ptr<Bullet> BulletPointer; // handy typedef to make the syntax clearer to read
 
 /**
  * This Ship class is a special
@@ -41,7 +43,8 @@ private:
 
 	// An array of Bullets
 	SDL_Texture *mBulletTexture;
-	boost::scoped_ptr<Bullet> mBullet;
+	std::vector<BulletPointer> mBullets;
+	// boost::scoped_ptr<Bullet> mBullet;
 };
 
 #endif

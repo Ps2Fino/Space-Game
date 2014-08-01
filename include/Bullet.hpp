@@ -25,7 +25,7 @@ public:
 	~Bullet();
 
 	int getVelocity() { return mVelocity; }
-	bool checkIsActive() { return mIsActive; }
+	bool checkIsActivated() { return mIsActive; }
 	void activate(int xPos, int yPos); // Activate a bullet at a spcific position
 
 	// inherited methods

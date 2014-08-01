@@ -11,6 +11,12 @@ project (ROCKET_SHOOTER)
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${ROCKET_SHOOTER_SOURCE_DIR}/cmake")
 
 ########################################################
+####### Some compiler flags ############################
+########################################################
+
+set (CMAKE_CXX_FLAGS "-Wall -std=c++0x")
+
+########################################################
 ####### Main Executable build commands #################
 ########################################################
 

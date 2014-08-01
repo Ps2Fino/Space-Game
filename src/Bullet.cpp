@@ -3,8 +3,8 @@
 Bullet::Bullet(SDL_Renderer *renderer, SDL_Texture *bulletTexture, 
 			int type, int width, int height, int x, int y)
 				: Sprite(renderer, width, height, x, y),
-				 mVelocity(DEFAULT_BULLET_VELOCITY),
-				 mIsActive(false)
+				mIsActive(false),
+				mVelocity(DEFAULT_BULLET_VELOCITY)
 {
 	// Create the source rectangle for the texture
 	switch (type)

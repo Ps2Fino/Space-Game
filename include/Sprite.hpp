@@ -32,7 +32,7 @@ class Sprite
 public:
 	Sprite(SDL_Renderer *renderer, int width = 640, 
 				int height = 480, int x = 0, int y = 0);
-	~Sprite();
+	virtual ~Sprite();
 
 	void loadTexture(SDL_Renderer *renderer, std::string &surface_image_path, bool replace);
 	void setTexture(SDL_Texture *texture) { mTex = texture; }
