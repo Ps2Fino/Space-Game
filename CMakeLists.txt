@@ -28,7 +28,7 @@ include_directories (${ROCKET_SHOOTER_SOURCE_DIR}/include)
 add_executable (rocket_shooter ${ROCKET_SHOOTER_SOURCE})
 
 ########################################################
-####### Link command for the SDL library ###############
+####### Find the SDL library package ###################
 ########################################################
 
 # Create a variable for housing the required libraries for the main executable
@@ -43,6 +43,18 @@ list (APPEND ROCKET_SHOOTER_REQUIRED_LIBS ${SDL2_LIBRARY})
 find_package (SDL2_image REQUIRED)
 include_directories (${SDL2_IMAGE_INCLUDE_DIR})
 list (APPEND ROCKET_SHOOTER_REQUIRED_LIBS ${SDL2_IMAGE_LIBRARY})
+
+########################################################
+####### Find Quartzcore if on Mac ######################
+########################################################
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    find_library(QUARTZCORE QuartzCore) # For Grand Central Dispatch
+    list (APPEND ROCKET_SHOOTER_REQUIRED_LIBS ${QUARTZCORE})
+endif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+
+## Link against the libraries found ##
 
 # Tell cmake to link against the SDL library
 target_link_libraries (rocket_shooter ${ROCKET_SHOOTER_REQUIRED_LIBS})

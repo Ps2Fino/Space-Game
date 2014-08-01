@@ -23,11 +23,11 @@ App::~App()
 /**
   * This method is responsible for inititiating the SDL 
   */
-int App::Execute()
+void App::Execute()
 {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
 		std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
-		return 1;
+		return;
 	}
 
 	// Create the window that will hold our game
@@ -36,7 +36,7 @@ int App::Execute()
 	{
 		std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
 		SDL_Quit();
-		return 1;
+		return;
 	}
 
 	// Next, we need a renderer to render the assets to the screen
@@ -46,11 +46,11 @@ int App::Execute()
 		std::cout << "SDL_CreateRenderer Error: " << SDL_GetError() << std::endl;
 		SDL_DestroyWindow(mWindow);
 		SDL_Quit();
-		return 1;
+		return;
 	}
 
 	InitGameObjects();
-	return 0;
+	return;
 }
 
 void App::InitGameObjects()
@@ -68,8 +68,10 @@ int App::ProcessInput()
 {
 	SDL_Event event;
 	EVENT myEvent; // For controlling the ship
+	std::cout << "About to call SDL_PollEvent" << std::endl;
 	while (SDL_PollEvent(&event))
 	{
+		std::cout << "Looping on poll event" << std::endl;
 		switch(event.type)
 		{
 			case SDL_KEYDOWN:
@@ -121,7 +123,7 @@ int App::UpdateScene()
 	SDL_RenderClear(mRenderer);
 
 	mBg->draw();
-	mPlayer->draw();
+	mPlayer->draw();	
 
 	// TODO: Draw other game objects here
 
@@ -129,13 +131,19 @@ int App::UpdateScene()
 	return 0;
 }
 
-int App::Loop()
+void App::Loop()
 {
+	std::cout << "The main loop was entered" << std::endl;
+
+	mRunning = true;
 	while (mRunning)
 	{
 		ProcessInput();
+		std::cout << "Input processed" << std::endl;
 		ProcessEvents();
+		std::cout << "Events processed" << std::endl;
 		UpdateScene();
+		std::cout << "Scene updated" << std::endl;
 	}
-	return 0;
+	return;
 }

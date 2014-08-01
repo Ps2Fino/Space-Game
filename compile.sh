@@ -1,4 +1,9 @@
 #!/bin/bash
+#
+# Just saves me typing the same thing over and over again ;-)
+# @author Daniel J. Finnegan
+# @date July 2014
+#
 
 if [ "$1" == "-b" ]
 then
