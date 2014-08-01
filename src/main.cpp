@@ -34,9 +34,9 @@ int main (int argc, char **argv)
 
 	// Create the background and the ship
 	std::cout << "About to load the background" << std::endl;
-	std::string bgImagePath = getResourcePath() + "lv1-bg.png";
+	std::string bgImagePath = getResourcePath() + "img/lv1-bg.png";
 	Background levelBG(renderer, bgImagePath);
-	std::string shipImagePath = getResourcePath() + "ship.png";
+	std::string shipImagePath = getResourcePath() + "img/ship.png";
 	Ship player(renderer, shipImagePath);
 
 	// Set the boundary for the ship
