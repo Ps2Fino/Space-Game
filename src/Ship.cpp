@@ -23,6 +23,10 @@ Ship::Ship(SDL_Renderer *renderer, std::string &imagePath, std::string &bulletIm
 		int bulletColor = distr(eng);
 		mBullets.push_back(BulletPtr(new Bullet(renderer, bulletColor))); // Make yellow bullets
 	}
+
+	// Set the default boundary
+	setMovementBoundary(0, GAME_WINDOW_HEIGHT);
+
 } // See the Sprite class
 
 Ship::~Ship()

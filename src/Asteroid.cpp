@@ -40,7 +40,6 @@ void Asteroid::activate(int xPos, int yPos)
 
 void Asteroid::update(GAME_EVENT ev)
 {
-	// Couldn't be simpler :-)
 	if (mIsActive)
 	{
 		mX_pos -= 1 * mVelocity;
