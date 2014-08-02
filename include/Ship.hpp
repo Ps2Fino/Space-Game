@@ -11,7 +11,7 @@
 #include "Sprite.hpp"
 #include "Bullet.hpp"
 
-typedef boost::shared_ptr<Bullet> BulletPointer; // handy typedef to make the syntax clearer to read
+typedef boost::shared_ptr<Bullet> BulletPtr; // handy typedef to make the syntax clearer to read
 
 /**
  * This Ship class is a special
@@ -33,6 +33,7 @@ public:
 	int getVelocity() { return mVelocity; }
 	void setVelocity(int vel) { mVelocity = vel; }
 	void fireBullet();
+	std::vector<BulletPtr> getBullets() { return mBullets; }
 
 	void setMovementBoundary(int top, int bottom); // This is the most the ship can move up and down
 
@@ -44,7 +45,7 @@ private:
 	SDL_Texture *mBulletTexture;
 
 	// An array of Bullets
-	std::vector<BulletPointer> mBullets;
+	std::vector<BulletPtr> mBullets;
 };
 
 #endif

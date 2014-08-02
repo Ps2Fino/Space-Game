@@ -16,11 +16,12 @@ Ship::Ship(SDL_Renderer *renderer, std::string &imagePath, std::string &bulletIm
 
 	// Let's create our bullet here
 	mBulletTexture = IMG_LoadTexture(renderer, bulletImagePath.c_str());
+	Bullet::bulletTexture = mBulletTexture; // Set the shared texture for all the bullets
 	for (int i = 0; i < NUMBER_BULLETS; ++i)
 	{
 		// Vary the bullet colors
 		int bulletColor = distr(eng);
-		mBullets.push_back(BulletPointer(new Bullet(renderer, mBulletTexture, bulletColor))); // Make yellow bullets
+		mBullets.push_back(BulletPtr(new Bullet(renderer, bulletColor))); // Make yellow bullets
 	}
 } // See the Sprite class
 

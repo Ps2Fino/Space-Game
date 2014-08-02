@@ -1,11 +1,10 @@
 #include "Bullet.hpp"
 
-Bullet::Bullet(SDL_Renderer *renderer, SDL_Texture *texture,
-				int type, int x, int y)
-				: Sprite(renderer, BULLET_WIDTH, BULLET_HEIGHT, x, y),
-				sharedTexture(texture),
-				mIsActive(false),
-				mVelocity(BULLET_VELOCITY)
+// Initialize the static texture variable
+SDL_Texture* Bullet::bulletTexture = NULL;
+
+Bullet::Bullet(SDL_Renderer *renderer, int type, int x, int y)
+				: Destructible(renderer, BULLET_WIDTH, BULLET_HEIGHT, x, y)
 {
 	// Create the source rectangle for the texture
 	switch (type)
@@ -29,6 +28,8 @@ Bullet::Bullet(SDL_Renderer *renderer, SDL_Texture *texture,
 	mTextureRegion.y = 0;
 	mTextureRegion.w = BULLET_WIDTH;
 	mTextureRegion.h = BULLET_HEIGHT;
+
+	mVelocity = BULLET_VELOCITY;
 }
 
 Bullet::~Bullet()
@@ -46,7 +47,6 @@ void Bullet::activate(int xPos, int yPos)
 		mShape.x = mX_pos;
 		mShape.y = mY_pos;
 	}
-
 }
 
 void Bullet::update(GAME_EVENT ev)
@@ -57,12 +57,12 @@ void Bullet::update(GAME_EVENT ev)
 		mX_pos += 1 * mVelocity;
 		mShape.x = mX_pos;
 		if (mX_pos > GAME_WINDOW_WIDTH)
-			mIsActive = false;
+			deactivate();
 	}
 }
 
 void Bullet::draw()
 {
 	if (mIsActive)
-		SDL_RenderCopy(mRenderer, sharedTexture, &mTextureRegion, &mShape);
+		SDL_RenderCopy(mRenderer, bulletTexture, &mTextureRegion, &mShape);
 }

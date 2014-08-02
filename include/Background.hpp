@@ -20,9 +20,6 @@ public:
 
 	void update(GAME_EVENT ev);
 	void draw();
-
-private:
-	// TODO: Implement this
 };
 
 #endif

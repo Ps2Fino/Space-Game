@@ -17,7 +17,7 @@ int initSDL(SDL_Window **window, SDL_Renderer **renderer);
 
 void handleInput(bool &running, GAME_EVENT &playerEvent, bool &fire);
 void updateEnemies(Sprite *enemies); // Update the array of sprites
-void handleCollisions(Ship &player, Sprite *enemies); // Simple collision checker for everything
+void handleCollisions(Ship &player, std::vector<AsteroidPtr> &asteroids); // Simple collision checker for everything
 void drawEntities(SDL_Renderer *renderer, Ship &player, Background &bg, Sprite *enemies);
 
 void activateAsteroid();
@@ -65,8 +65,9 @@ int main (int argc, char **argv)
 	// Create the enemy array
 	std::string asteroidImagePath = getResourcePath() + "img/asteroid.png";
 	SDL_Texture *asteroidTexture = IMG_LoadTexture(renderer, asteroidImagePath.c_str());
+	Asteroid::asteroidTexture = asteroidTexture; // Set the asteroid texture
 	for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
-		asteroids.push_back(AsteroidPtr(new Asteroid(renderer, asteroidTexture)));
+		asteroids.push_back(AsteroidPtr(new Asteroid(renderer)));
 
 	// Set the boundary for the ship
 	player.setMovementBoundary(0, 480);
@@ -111,7 +112,7 @@ int main (int argc, char **argv)
 		updateEnemies(NULL);
 
 		// Check collisions here
-		handleCollisions(player, NULL);
+		handleCollisions(player, asteroids);
 
 		// Draw stuff
 		drawEntities(renderer, player, levelBG, NULL);
@@ -199,9 +200,36 @@ void updateEnemies(Sprite *enemies)
 		asteroids[i].get()->update();
 }
 
-void handleCollisions(Ship &player, Sprite *enemies)
+void handleCollisions(Ship &player, std::vector<AsteroidPtr> &asteroids)
 {
-	// TODO: Implement this
+	for (std::vector<AsteroidPtr>::iterator asteroidIt = asteroids.begin(); asteroidIt != asteroids.end(); ++asteroidIt)
+	{
+		AsteroidPtr currAsteroid = *asteroidIt;
+
+		if (!currAsteroid.get()->checkIsActivated())
+			continue; // An inactive asteroid can't be hit anyways
+
+		SDL_Rect asteroidRect = currAsteroid.get()->getSize();
+
+		std::vector<BulletPtr> bullets = player.getBullets();
+		for (std::vector<BulletPtr>::iterator bulletIt = bullets.begin(); bulletIt != bullets.end(); ++bulletIt)
+		{
+			BulletPtr currBullet = *bulletIt;
+			SDL_Rect bulletRect = currBullet.get()->getSize();
+
+			if (asteroidRect.x >= bulletRect.x
+					&& asteroidRect.x <= bulletRect.x + BULLET_COLLISION_WIDTH)
+			{
+				if (asteroidRect.y >= bulletRect.y
+						&& asteroidRect.y <= bulletRect.y + BULLET_COLLISION_HEIGHT)
+				{
+					currAsteroid.get()->deactivate();
+					currBullet.get()->deactivate();
+					break;
+				}
+			}
+		}
+	}
 }
 
 void drawEntities(SDL_Renderer *renderer, Ship &player, Background &bg, Sprite *enemies)
