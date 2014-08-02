@@ -1,14 +1,12 @@
 #ifndef BULLET_HPP
 #define BULLET_HPP
 
+#include "RSConstants.hpp"
+
 #include <SDL.h>
 #include <SDL_image.h>
 
 #include "Sprite.hpp"
-
-#define BULLET_WIDTH 95
-#define BULLET_HEIGHT 68
-#define DEFAULT_BULLET_VELOCITY 10
 
 /**
   * This class encapsulates a bullet.
@@ -19,9 +17,8 @@ class Bullet : public Sprite
 {
 public:
 
-	Bullet(SDL_Renderer *renderer, int type = 0, 
-				int width = BULLET_WIDTH, int height = BULLET_HEIGHT,
-				int x = 320, int y = 240);
+	Bullet(SDL_Renderer *renderer, SDL_Texture *texture = NULL, 
+				int type = 0, int x = 0, int y = 0);
 	~Bullet();
 
 	int getVelocity() { return mVelocity; }

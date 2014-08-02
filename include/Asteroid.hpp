@@ -1,12 +1,14 @@
 #ifndef ASTEROID_HPP
 #define ASTEROID_HPP
 
+#include "RSConstants.hpp"
+
 #include <SDL.h>
 #include <SDL_image.h>
 
-#define NUMBER_OF_ASTEROID_SPRITES 8
-#define ASTEROID_WIDTH 64
-#define ASTEROID_HEIGHT 64
+#include "boost/shared_ptr.hpp"
+
+#include "Sprite.hpp"
 
 /**
   * An asteroid doens't do much.
@@ -16,14 +18,26 @@ class Asteroid : public Sprite
 {
 public:
 
-	Asteroid();
+	Asteroid(SDL_Renderer *renderer, SDL_Texture *texture = NULL);
 	~Asteroid();
 
-	void update(GAME_EVENT event = 0);
+	void setXPosition(int x) { mX_pos = x; } // Set this to the screen size (eg 640)
+	int getVelocity() { return mVelocity; }
+	bool checkIsActivated() { return mIsActive; }
+	void activate(); // Activate an asteroid
+
+	// inherited methods
+	void update(GAME_EVENT event = NONE);
 	void draw();
 
+	SDL_Texture *sharedTexture; // Again, don't initialise this. It will be passed to the asteroid instance at creation time
+
 private:
-	SDL_Texture *sharedTexture; // Again, just like the bullets, an asteroid has a shared texture
+	bool mIsActive;
+	int mVelocity;
+	SDL_Rect mTextureRegion;
 };
+
+typedef boost::shared_ptr<Asteroid> AsteroidPtr; // Again, same trick used here
 
 #endif

@@ -1,31 +1,28 @@
 #include "Bullet.hpp"
 
-Bullet::Bullet(SDL_Renderer *renderer, int type, 
-				int width, int height, int x, int y)
-				: Sprite(renderer, width, height, x, y),
+Bullet::Bullet(SDL_Renderer *renderer, SDL_Texture *texture,
+				int type, int x, int y)
+				: Sprite(renderer, BULLET_WIDTH, BULLET_HEIGHT, x, y),
+				sharedTexture(texture),
 				mIsActive(false),
-				mVelocity(DEFAULT_BULLET_VELOCITY)
+				mVelocity(BULLET_VELOCITY)
 {
 	// Create the source rectangle for the texture
 	switch (type)
 	{
 		case 0:
-			std::cout << "Using the 0th (red) bullet" << std::endl;
 			mTextureRegion.x = 0;
 			break;
 
 		case 1:
-		std::cout << "Using the 1st (light red) bullet" << std::endl;
-			mTextureRegion.x = 95;
+			mTextureRegion.x = 1 * BULLET_WIDTH;
 			break;
 
 		case 2:
-			std::cout << "Using the 2th (yellow) bullet" << std::endl;
-			mTextureRegion.x = 190;
+			mTextureRegion.x = 2 * BULLET_WIDTH;
 			break;
 
 		default:
-			std::cout << "Using the 0th (red) bullet" << std::endl;
 			mTextureRegion.x = 0; // Default to the first bullet
 			break;
 	}
@@ -59,7 +56,7 @@ void Bullet::update(GAME_EVENT ev)
 	{
 		mX_pos += 1 * mVelocity;
 		mShape.x = mX_pos;
-		if (mX_pos > 640)
+		if (mX_pos > GAME_WINDOW_WIDTH)
 			mIsActive = false;
 	}
 }

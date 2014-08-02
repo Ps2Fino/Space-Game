@@ -2,20 +2,25 @@
 #include <SDL_image.h> // For loading textures from pngs
 #include <iostream>
 
-#include "boost/shared_ptr.hpp"
+#include "boost/shared_ptr.hpp" // For smart pointers and the like
+#include <vector> // For the std::vector data structure
+#include <random> // For random bullet colors
 
 #include "Utils.hpp"
 #include "Sprite.hpp"
 #include "Ship.hpp"
 #include "Background.hpp"
 #include "Bullet.hpp"
+#include "Asteroid.hpp"
 
 int initSDL(SDL_Window **window, SDL_Renderer **renderer);
+
 void handleInput(bool &running, GAME_EVENT &playerEvent, bool &fire);
 void updateEnemies(Sprite *enemies); // Update the array of sprites
 void handleCollisions(Ship &player, Sprite *enemies); // Simple collision checker for everything
 void drawEntities(SDL_Renderer *renderer, Ship &player, Background &bg, Sprite *enemies);
 
+void activateAsteroid();
 int loadLevel(int argc, char **argv);
 
 #define PLAY_LEVEL 0
@@ -25,6 +30,9 @@ const char *levels[4] = {
 	"lv3-bg.png",
 	"lv4-bg.png"
 };
+
+// Global variable for the list of asteroids. This is bad practice, don't do this. My excuse is its 01:32 am
+std::vector<AsteroidPtr> asteroids;
 
 /**
   * This game runs in the main function of the application
@@ -55,8 +63,10 @@ int main (int argc, char **argv)
 	Ship player(renderer, shipImagePath, bulletImagePath);
 
 	// Create the enemy array
-
-	// TODO: Populate the array of enemies with some enemies
+	std::string asteroidImagePath = getResourcePath() + "img/asteroid.png";
+	SDL_Texture *asteroidTexture = IMG_LoadTexture(renderer, asteroidImagePath.c_str());
+	for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
+		asteroids.push_back(AsteroidPtr(new Asteroid(renderer, asteroidTexture)));
 
 	// Set the boundary for the ship
 	player.setMovementBoundary(0, 480);
@@ -70,17 +80,33 @@ int main (int argc, char **argv)
 	const signed int BULLET_INTERVAL = 300;
 	unsigned int lastBulletTime = 0;
 
+	// Have a variable delay for the asteroids too
+	std::random_device rd; // obtain a random number from hardware
+    std::mt19937 eng(rd()); // seed the generator
+    std::uniform_int_distribution<> distr(300, 1000); // define the range
+	signed int ASTEROID_INTERVAL = distr(eng); // Random time interval
+	unsigned int lastAsteroidTime = 0;
+
 	while (running)
 	{		
 		// handleInput(running, gameEvent);
 		handleInput(running, gameEvent, fire);
 
-		// Update the player and other entities
+		// Fire a bullet if enough time has passed
 		if (fire && (lastBulletTime + BULLET_INTERVAL <= SDL_GetTicks()))
 		{
 			lastBulletTime = SDL_GetTicks();
 			player.fireBullet();
 		}
+
+		// Fire an asteroid if enough time has passed
+		if (lastAsteroidTime + ASTEROID_INTERVAL <= SDL_GetTicks())
+		{
+			ASTEROID_INTERVAL = distr(eng);
+			lastAsteroidTime = SDL_GetTicks();
+			activateAsteroid();
+		}
+
 		player.update(gameEvent);
 		updateEnemies(NULL);
 
@@ -92,6 +118,7 @@ int main (int argc, char **argv)
 	}
 
 	// Cleanup everything. The ship, background and enemies will clean themselves
+	SDL_DestroyTexture(asteroidTexture);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
@@ -115,6 +142,19 @@ int loadLevel(int argc, char **argv)
 		}
 	}
 	return level;
+}
+
+void activateAsteroid()
+{
+	for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
+	{
+		Asteroid *currAsteroid = asteroids[i].get();
+		if (!currAsteroid->checkIsActivated())
+		{
+			currAsteroid->activate();
+			break;
+		}
+	}
 }
 
 int initSDL(SDL_Window **window, SDL_Renderer **renderer)
@@ -155,7 +195,8 @@ int initSDL(SDL_Window **window, SDL_Renderer **renderer)
 
 void updateEnemies(Sprite *enemies)
 {
-	// TODO: Implement this
+	for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
+		asteroids[i].get()->update();
 }
 
 void handleCollisions(Ship &player, Sprite *enemies)
@@ -169,8 +210,11 @@ void drawEntities(SDL_Renderer *renderer, Ship &player, Background &bg, Sprite *
 	SDL_RenderClear(renderer);
 
 	bg.draw();
+	
+	for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
+		asteroids[i].get()->draw();
+
 	player.draw();
-	// TODO: Implement enemy drawing
 
 	SDL_RenderPresent(renderer);
 }

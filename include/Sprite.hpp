@@ -1,6 +1,8 @@
 #ifndef SPRITE_HPP
 #define SPRITE_HPP
 
+#include "RSConstants.hpp" // Handy constants for the game
+
 #include <SDL.h>
 #include <SDL_image.h>
 #include <iostream>

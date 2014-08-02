@@ -1,6 +1,8 @@
 #ifndef SHIP_HPP
 #define SHIP_HPP
 
+#include "RSConstants.hpp"
+
 #include <SDL.h>
 #include <SDL_image.h>
 #include <vector> // For the bullets
@@ -8,9 +10,6 @@
 
 #include "Sprite.hpp"
 #include "Bullet.hpp"
-
-#define DEFAULT_SHIP_VELOCITY 5
-#define NUMBER_BULLETS 5
 
 typedef boost::shared_ptr<Bullet> BulletPointer; // handy typedef to make the syntax clearer to read
 
@@ -24,8 +23,8 @@ class Ship : public Sprite
 public:
 
 	Ship(SDL_Renderer *renderer, std::string &imagePath, std::string &bulletImagePath,
-			int width = 64, int height = 48,
-			int x = 20, int y = 240);
+			int width = SHIP_WIDTH, int height = SHIP_HEIGHT,
+			int x = SHIP_START_POSITION_X, int y = SHIP_START_POSITION_Y);
 	~Ship();
 
 	void update(GAME_EVENT ev);
@@ -41,10 +40,11 @@ private:
 	int mVelocity;
 	int mTopBoundary, mBottomBoundary;
 
-	// An array of Bullets
+	// The texture to be shared across all the bullets
 	SDL_Texture *mBulletTexture;
+
+	// An array of Bullets
 	std::vector<BulletPointer> mBullets;
-	// boost::scoped_ptr<Bullet> mBullet;
 };
 
 #endif

@@ -5,8 +5,7 @@
 Ship::Ship(SDL_Renderer *renderer, std::string &imagePath, std::string &bulletImagePath,
 				int width, int height, int x, int y) 
 					: Sprite(renderer, width, height, x, y), 
-					mVelocity(DEFAULT_SHIP_VELOCITY)
-					// mBullet(new Bullet(renderer))
+					mVelocity(SHIP_VELOCITY)
 {
 	loadTexture(renderer, imagePath, false);
 
@@ -21,9 +20,7 @@ Ship::Ship(SDL_Renderer *renderer, std::string &imagePath, std::string &bulletIm
 	{
 		// Vary the bullet colors
 		int bulletColor = distr(eng);
-
-		mBullets.push_back(BulletPointer(new Bullet(renderer, bulletColor))); // Make yellow bullets
-		mBullets.back().get()->sharedTexture = mBulletTexture;
+		mBullets.push_back(BulletPointer(new Bullet(renderer, mBulletTexture, bulletColor))); // Make yellow bullets
 	}
 } // See the Sprite class
 
