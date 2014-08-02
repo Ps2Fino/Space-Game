@@ -53,6 +53,7 @@
 //// Entitiy counts for the game //////////
 ///////////////////////////////////////////
 
+#define NUMBER_ASTEROIDS_TO_WIN 50
 #define NUMBER_BULLETS 5
 #define NUMBER_ASTEROIDS 20
 #define ASTEROID_INTERVAL_RANGE_MIN 300

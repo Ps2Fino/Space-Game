@@ -45,7 +45,14 @@ void Asteroid::update(GAME_EVENT ev)
 		mX_pos -= 1 * mVelocity;
 		mShape.x = mX_pos;
 		if (mX_pos < (-1 * ASTEROID_WIDTH))
+		{
+			// record it in the stats, if applicable
+			if (mScoreTable != nullptr)
+			{
+				mScoreTable->loseLife();
+			}
 			deactivate();
+		}
 	}
 }
 

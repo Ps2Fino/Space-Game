@@ -7,7 +7,7 @@
 #include <SDL_image.h>
 
 #include "boost/shared_ptr.hpp"
-
+#include "Stats.hpp"
 #include "Destructible.hpp"
 
 /**
@@ -28,7 +28,12 @@ public:
 	void update(GAME_EVENT event = NONE);
 	void draw();
 
+	void setStats(Stats *stats) { mScoreTable = stats; }
+
 	static SDL_Texture *asteroidTexture; // Shared asteroid texture
+
+private:
+	Stats *mScoreTable; // A pointer to the stats so that when an asteroid passes the player it can take a life
 };
 
 typedef boost::shared_ptr<Asteroid> AsteroidPtr; // Again, same trick used here

@@ -68,15 +68,18 @@ int main (int argc, char **argv)
 	std::string bulletImagePath = getResourcePath() + "img/bullet_strip.png";
 	Ship player(renderer, shipImagePath, bulletImagePath);
 
+	// Create the score table
+	Stats scoreTable(renderer, font);
+
 	// Create the enemy array
 	std::string asteroidImagePath = getResourcePath() + "img/asteroid.png";
 	SDL_Texture *asteroidTexture = IMG_LoadTexture(renderer, asteroidImagePath.c_str());
 	Asteroid::asteroidTexture = asteroidTexture; // Set the asteroid texture
 	for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
+	{
 		asteroids.push_back(AsteroidPtr(new Asteroid(renderer)));
-
-	// Create the score table
-	Stats scoreTable(renderer, font);
+		asteroids.back().get()->setStats(&scoreTable); // Add the stats table to the asteroid
+	}
 
 	// Some variables necessary for the game loop
 	bool running = true;
@@ -94,7 +97,7 @@ int main (int argc, char **argv)
 	signed int ASTEROID_INTERVAL = distr(eng); // Random time interval
 	unsigned int lastAsteroidTime = 0;
 
-	while (running)
+	while (!scoreTable.checkIsGameOver() && running)
 	{		
 		// handleInput(running, gameEvent);
 		handleInput(running, gameEvent, fire);
@@ -123,6 +126,20 @@ int main (int argc, char **argv)
 
 		// Draw stuff
 		drawEntities(renderer, player, levelBG, asteroids, scoreTable);
+	}
+
+	// Deactivate the score table
+	scoreTable.deactivate();
+
+	// TODO: Show the player a game over screen or something
+
+	if (running && scoreTable.playerWon())
+	{
+		std::cout << "YOU WON!!" << std::endl;
+	}
+	else if (running)
+	{
+		std::cout << "YOU LOST" << std::endl;
 	}
 
 	// Cleanup everything. The ship, background and enemies will clean themselves
