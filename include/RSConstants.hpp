@@ -4,6 +4,7 @@
 // The default level background to play in
 #define PLAY_LEVEL 3
 #define TEXT_FONT_SIZE 20
+#define NUMBER_PLAYER_LIVES 10
 
 ///////////////////////////////////////////
 //// Sizes for entities ///////////////////
@@ -20,6 +21,15 @@
 
 #define ASTEROID_WIDTH 64
 #define ASTEROID_HEIGHT 64
+
+///////////////////////////////////////////
+//// Sizes for the score table ////////////
+///////////////////////////////////////////
+
+#define SCORE_TEXT_LOCATION_X (GAME_WINDOW_WIDTH - 350)
+#define SCORE_TEXT_LOCATION_Y 0
+#define SCORE_TEXT_WIDTH 300
+#define SCORE_TEXT_HEIGHT 50
 
 ///////////////////////////////////////////
 //// Start positions for entities /////////
@@ -44,7 +54,9 @@
 ///////////////////////////////////////////
 
 #define NUMBER_BULLETS 5
-#define NUMBER_ASTEROIDS 10
+#define NUMBER_ASTEROIDS 20
+#define ASTEROID_INTERVAL_RANGE_MIN 300
+#define ASTEROID_INTERVAL_RANGE_MAX 500
 #define NUMBER_OF_ASTEROID_SPRITES 8
 
 ///////////////////////////////////////////

@@ -12,14 +12,19 @@
 #include "Background.hpp"
 #include "Bullet.hpp"
 #include "Asteroid.hpp"
+#include "Stats.hpp"
 
 int initSDL(SDL_Window **window, SDL_Renderer **renderer, TTF_Font **font);
 
 void handleInput(bool &running, GAME_EVENT &playerEvent, bool &fire);
-void updateEnemies(std::vector<AsteroidPtr> &asteroids); // Update the vector of asteroids
-void handleCollisions(Ship &player, std::vector<AsteroidPtr> &asteroids); // Simple collision checker for everything
+
+void updateEnemies(std::vector<AsteroidPtr> &asteroids, Stats &scoreTable); // Update the vector of asteroids
+
+void handleCollisions(Ship &player, std::vector<AsteroidPtr> &asteroids, 
+						Stats &scoreTable); // Simple collision checker for everything
+
 void drawEntities(SDL_Renderer *renderer, Ship &player, 
-					Background &bg, std::vector<AsteroidPtr> &asteroids, SDL_Texture *statsTexture);
+					Background &bg, std::vector<AsteroidPtr> &asteroids, Stats &scoreTable);
 
 void activateAsteroid();
 int loadLevel(int argc, char **argv);
@@ -31,16 +36,8 @@ const char *levels[4] = {
 	"lv4-bg.png"
 };
 
-typedef struct stats {
-	int num_lives;
-	int num_asteroids_shot;
-} Stats;
-
 // Global variable for the list of asteroids. This is bad practice, don't do this. My excuse is its 01:32 am
 std::vector<AsteroidPtr> asteroids;
-
-// The text location for the statistics text (game score)
-SDL_Rect textLocation = { GAME_WINDOW_WIDTH - 350, 20, 300, 50 };
 
 /**
   * This game runs in the main function of the application
@@ -62,15 +59,6 @@ int main (int argc, char **argv)
 	if (status != 0)
 		return 1;
 
-	// Create the font foreground and background colors, and the text location
-	SDL_Color fgColor = { 0, 0, 0 };
-	SDL_Color bgColor = { 255, 255, 255 };
-
-	// Default surface for the text
-	SDL_Surface *statsSurface = TTF_RenderText_Shaded(font, "5 lives. 0 asteroids shot",
-																fgColor, bgColor);
-	SDL_Texture *statsTexture = SDL_CreateTextureFromSurface(renderer, statsSurface);
-
 	// Create the background and the ship
 	std::string bgImagePath = getResourcePath() + "img/" + levels[level];
 	std::cout << "Playing level: " << bgImagePath << std::endl;
@@ -87,10 +75,8 @@ int main (int argc, char **argv)
 	for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
 		asteroids.push_back(AsteroidPtr(new Asteroid(renderer)));
 
-	// Init the stats struct
-	Stats score;
-	score.num_lives = 0;
-	score.num_asteroids_shot = 0;
+	// Create the score table
+	Stats scoreTable(renderer, font);
 
 	// Some variables necessary for the game loop
 	bool running = true;
@@ -104,7 +90,7 @@ int main (int argc, char **argv)
 	// Have a variable delay for the asteroids too
 	std::random_device rd; // obtain a random number from hardware
     std::mt19937 eng(rd()); // seed the generator
-    std::uniform_int_distribution<> distr(300, 1000); // define the range
+    std::uniform_int_distribution<> distr(ASTEROID_INTERVAL_RANGE_MIN, ASTEROID_INTERVAL_RANGE_MAX); // define the range
 	signed int ASTEROID_INTERVAL = distr(eng); // Random time interval
 	unsigned int lastAsteroidTime = 0;
 
@@ -130,18 +116,16 @@ int main (int argc, char **argv)
 
 		// Update the player shio and the asteroid belt
 		player.update(gameEvent);
-		updateEnemies(asteroids);
+		updateEnemies(asteroids, scoreTable);
 
 		// Check collisions here
-		handleCollisions(player, asteroids);
+		handleCollisions(player, asteroids, scoreTable);
 
 		// Draw stuff
-		drawEntities(renderer, player, levelBG, asteroids, statsTexture);
+		drawEntities(renderer, player, levelBG, asteroids, scoreTable);
 	}
 
 	// Cleanup everything. The ship, background and enemies will clean themselves
-	SDL_FreeSurface(statsSurface);
-	SDL_DestroyTexture(statsTexture);
 	TTF_CloseFont(font);
 	SDL_DestroyTexture(asteroidTexture);
 	SDL_DestroyRenderer(renderer);
@@ -152,8 +136,6 @@ int main (int argc, char **argv)
 	renderer = NULL;
 	window = NULL;
 	font = NULL;
-	statsSurface = NULL;
-	statsTexture = NULL;
 
 	return 0;
 }
@@ -197,10 +179,9 @@ int initSDL(SDL_Window **window, SDL_Renderer **renderer, TTF_Font **font)
 		return 1;
 	}
 
-	if(TTF_Init() != 0) {
-	    std::cout << "TTF_Init Error: " << TTF_GetError() << std::endl;
-	    SDL_Quit();
-	    return 1;
+	if (TTF_Init() != 0)
+	{
+		std::cout << "TTF_Init Error: " << TTF_GetError() << std::endl;
 	}
 
 	// Create the window that will hold our game
@@ -224,9 +205,9 @@ int initSDL(SDL_Window **window, SDL_Renderer **renderer, TTF_Font **font)
 		return 1;
 	}
 
-	// Next we init the font
-	std::string fontString = getResourcePath() + "fonts/tiptoe.ttf";
-	tempFont = TTF_OpenFont(fontString.c_str(), TEXT_FONT_SIZE);
+	// Load  the font
+	std::string fontPath = getResourcePath() + "fonts/tiptoe.ttf";
+	tempFont = TTF_OpenFont(fontPath.c_str(), TEXT_FONT_SIZE);
 	if (tempFont == nullptr)
 	{
 		std::cout << "TTF_OpenFont Error: " << TTF_GetError() << std::endl;
@@ -242,16 +223,20 @@ int initSDL(SDL_Window **window, SDL_Renderer **renderer, TTF_Font **font)
 	*renderer = tempRen;
 	*font = tempFont;
 
+	tempWin = NULL;
+	tempRen = NULL;
+	tempFont = NULL;
+
 	return 0;
 }
 
-void updateEnemies(std::vector<AsteroidPtr> &asteroids)
+void updateEnemies(std::vector<AsteroidPtr> &asteroids, Stats &scoreTable)
 {
 	for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
 		asteroids[i].get()->update();
 }
 
-void handleCollisions(Ship &player, std::vector<AsteroidPtr> &asteroids)
+void handleCollisions(Ship &player, std::vector<AsteroidPtr> &asteroids, Stats &scoreTable)
 {
 	for (std::vector<AsteroidPtr>::iterator asteroidIt = asteroids.begin(); asteroidIt != asteroids.end(); ++asteroidIt)
 	{
@@ -282,6 +267,9 @@ void handleCollisions(Ship &player, std::vector<AsteroidPtr> &asteroids)
 					// 		  << bulletRect.x << "\tY: " << bulletRect.y << "\tW: " << bulletRect.w << "\tH: " << bulletRect.h << std::endl;
 					currAsteroid.get()->deactivate();
 					currBullet.get()->deactivate();
+
+					// record the score
+					scoreTable.shootAsteroid();
 					break;
 				}
 			}
@@ -290,7 +278,7 @@ void handleCollisions(Ship &player, std::vector<AsteroidPtr> &asteroids)
 }
 
 void drawEntities(SDL_Renderer *renderer, Ship &player, 
-					Background &bg, std::vector<AsteroidPtr> &asteroids, SDL_Texture *statsTexture)
+					Background &bg, std::vector<AsteroidPtr> &asteroids, Stats &scoreTable)
 {
 	// Now draw the frame
 	SDL_RenderClear(renderer);
@@ -302,8 +290,7 @@ void drawEntities(SDL_Renderer *renderer, Ship &player,
 
 	player.draw();
 
-	// Draw the stats too
-	SDL_RenderCopy(renderer, statsTexture, NULL, &textLocation);
+	scoreTable.draw();
 
 	// Present everything to be rendered
 	SDL_RenderPresent(renderer);
