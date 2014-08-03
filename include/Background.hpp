@@ -4,6 +4,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 
+#include "boost/shared_ptr.hpp"
 #include "Sprite.hpp"
 
 /**
@@ -21,5 +22,7 @@ public:
 	void update(GAME_EVENT ev);
 	void draw();
 };
+
+typedef boost::shared_ptr<Background> BackgroundPtr;
 
 #endif

@@ -11,8 +11,6 @@
 #include "Sprite.hpp"
 #include "Bullet.hpp"
 
-typedef boost::shared_ptr<Bullet> BulletPtr; // handy typedef to make the syntax clearer to read
-
 /**
  * This Ship class is a special
  * child of Sprite. It allows the player to move up
@@ -47,5 +45,7 @@ private:
 	// An array of Bullets
 	std::vector<BulletPtr> mBullets;
 };
+
+typedef boost::shared_ptr<Ship> ShipPtr;
 
 #endif

@@ -1,6 +1,25 @@
 #ifndef RS_CONSTANTS
 #define RS_CONSTANTS
 
+// The events that the input handler will check for
+enum GAME_EVENT {
+	UP_DOWN,
+	DOWN_DOWN,
+	ESC_DOWN,
+	SPACE_DOWN,
+	UP_UP,
+	DOWN_UP,
+	ESCAPE_UP,
+	SPACE_UP,
+	GAME_QUIT,	
+} GameEvent;
+
+enum GAME_STATE {
+	MENU,
+	GAME,
+	GAME_OVER,
+} state;
+
 ///////////////////////////////////////////
 //// Misc definitions and constants ///////
 ///////////////////////////////////////////

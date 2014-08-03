@@ -8,20 +8,6 @@
 #include <iostream>
 
 /**
- * Declare an event enum. This is how the sprites know
- * how to update
- */
-
- enum GAME_EVENT {
- 	NONE,
- 	UP,
- 	DOWN,
- 	LEFT,
- 	FIRE,
- 	// RIGHT, // For the moment, we can't ever move to the right of the screen
- };
-
-/**
   * The Sprite class is an abstract class
   * It has an XY position as well as an SDL_Surface
   * that it uses to represent itself visually

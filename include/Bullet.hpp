@@ -28,4 +28,6 @@ public:
 	static SDL_Texture *bulletTexture; // Shared bullet texture
 };
 
+typedef boost::shared_ptr<Bullet> BulletPtr;
+
 #endif

@@ -12,4 +12,4 @@ Dependencies
 + SDL Image (SDL_image.h)
 + SDL TrueType Font (SDL_ttf.h)
 + SDL Mixer (SDL_mixer)
-+ Boost (a modified version of boost containing just the smart pointer header only library and its dependencies is included with the source)
++ Boost (a modified version of boost containing just the smart pointer header-only library and its dependencies is included with the source)
