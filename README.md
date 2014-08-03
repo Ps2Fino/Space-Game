@@ -11,4 +11,5 @@ Dependencies
 + SDL 2.0.3 (>= 2.0 should be fine)
 + SDL Image (SDL_image.h)
 + SDL TrueType Font (SDL_ttf.h)
++ SDL Mixer (SDL_mixer)
 + Boost (a modified version of boost containing just the smart pointer header only library and its dependencies is included with the source)
