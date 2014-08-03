@@ -42,7 +42,7 @@ void Stats::shootAsteroid()
 void Stats::setText()
 {
 	std::ostringstream stream;
-	stream << mLives << " lives. " << mAsteroids << " asteroids shot.";
+	stream << mLives << " lives " << mAsteroids << " asteroids shot";
 	std::string textString = stream.str();
 	SDL_Surface *newSurface = 
 		TTF_RenderText_Blended(mFont, textString.c_str(), mFGColor);

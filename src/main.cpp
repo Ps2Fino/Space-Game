@@ -13,6 +13,7 @@
 #include "Bullet.hpp"
 #include "Asteroid.hpp"
 #include "Stats.hpp"
+#include "SoundFX.hpp"
 
 int initSDL(SDL_Window **window, SDL_Renderer **renderer, TTF_Font **font);
 
@@ -59,6 +60,15 @@ int main (int argc, char **argv)
 	if (status != 0)
 		return 1;
 
+	// Init the sound library
+	status = SoundFX::initMixerLibrary();
+	if (status != 0)
+		return 1;
+
+	status = SoundFX::loadLaserSound();
+	if (status != 0)
+		return 1;	
+
 	// Create the background and the ship
 	std::string bgImagePath = getResourcePath() + "img/" + levels[level];
 	std::cout << "Playing level: " << bgImagePath << std::endl;
@@ -97,8 +107,15 @@ int main (int argc, char **argv)
 	signed int ASTEROID_INTERVAL = distr(eng); // Random time interval
 	unsigned int lastAsteroidTime = 0;
 
+#ifdef LOGGING_FPS
+	int countedFrames = 0;
+	Uint32 fpsStartTime = SDL_GetTicks();
+#endif
+	
 	while (!scoreTable.checkIsGameOver() && running)
-	{		
+	{
+		Uint32 frameStartTime = SDL_GetTicks();
+
 		// handleInput(running, gameEvent);
 		handleInput(running, gameEvent, fire);
 
@@ -117,15 +134,38 @@ int main (int argc, char **argv)
 			activateAsteroid();
 		}
 
-		// Update the player shio and the asteroid belt
+		// Update the player ship and the asteroid belt
 		player.update(gameEvent);
 		updateEnemies(asteroids, scoreTable);
 
 		// Check collisions here
 		handleCollisions(player, asteroids, scoreTable);
 
+#ifdef LOGGING_FPS
+		// Before we draw, calculate how fast that fram took to compute
+		float avgFps = countedFrames / ((SDL_GetTicks() - fpsStartTime) / 1000.0f);
+		if (avgFps > 2000000)
+		{
+			avgFps = 0;
+		}
+
+		std::cout << "Frames per second: " << avgFps << std::endl;
+#endif
+
 		// Draw stuff
 		drawEntities(renderer, player, levelBG, asteroids, scoreTable);
+
+#ifdef LOGGING_FPS
+		// Increase the frame count
+		++countedFrames;
+#endif
+
+		// Delay if we're going too fast
+		int frameTicks = SDL_GetTicks() - frameStartTime;
+		if (frameTicks < SCREEN_TICKS_PER_FRAME)
+		{
+			SDL_Delay(SCREEN_TICKS_PER_FRAME - frameTicks);
+		}
 	}
 
 	// Deactivate the score table
@@ -147,6 +187,7 @@ int main (int argc, char **argv)
 	SDL_DestroyTexture(asteroidTexture);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
+	SoundFX::shutDownMixerLibrary();
 	TTF_Quit();
 	SDL_Quit();
 

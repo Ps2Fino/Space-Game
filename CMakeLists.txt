@@ -58,6 +58,11 @@ find_package (SDL2_TTF REQUIRED)
 include_directories (${SDL2_TTF_INCLUDE_DIR})
 list (APPEND ROCKET_SHOOTER_REQUIRED_LIBS ${SDL2_TTF_LIBRARY})
 
+# Search for SDL Mixer and append it to the list
+find_package (SDL2_MIXER REQUIRED)
+include_directories (${SDL2_MIXER_INCLUDE_DIR})
+list (APPEND ROCKET_SHOOTER_REQUIRED_LIBS ${SDL2_MIXER_LIBRARY})
+
 # Tell cmake to link against the SDL library
 target_link_libraries (rocket_shooter ${ROCKET_SHOOTER_REQUIRED_LIBS})
 

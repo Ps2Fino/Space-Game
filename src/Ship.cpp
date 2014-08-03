@@ -1,6 +1,7 @@
 #include "Ship.hpp"
 
 #include <random> // For random bullet colors
+#include "SoundFX.hpp" // For the bullet sounds
 
 Ship::Ship(SDL_Renderer *renderer, std::string &imagePath, std::string &bulletImagePath,
 				int width, int height, int x, int y) 
@@ -53,6 +54,9 @@ void Ship::fireBullet()
 			break;
 		}
 	}
+
+	// Play the sound effect
+	SoundFX::playLaserSound();
 }
 
 void Ship::update(GAME_EVENT ev)

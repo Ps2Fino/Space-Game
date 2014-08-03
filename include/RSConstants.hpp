@@ -1,10 +1,18 @@
 #ifndef RS_CONSTANTS
 #define RS_CONSTANTS
 
+///////////////////////////////////////////
+//// Misc definitions and constants ///////
+///////////////////////////////////////////
+
+// #define LOGGING_FPS YES // Uncomment this to log the fps during the game loop
+
 // The default level background to play in
 #define PLAY_LEVEL 3
 #define TEXT_FONT_SIZE 20
 #define NUMBER_PLAYER_LIVES 10
+#define SCREEN_FPS 60
+const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 
 ///////////////////////////////////////////
 //// Sizes for entities ///////////////////
@@ -26,8 +34,8 @@
 //// Sizes for the score table ////////////
 ///////////////////////////////////////////
 
-#define SCORE_TEXT_LOCATION_X (GAME_WINDOW_WIDTH - 350)
-#define SCORE_TEXT_LOCATION_Y 0
+#define SCORE_TEXT_LOCATION_X (GAME_WINDOW_WIDTH - 300)
+#define SCORE_TEXT_LOCATION_Y (-10)
 #define SCORE_TEXT_WIDTH 300
 #define SCORE_TEXT_HEIGHT 50
 

@@ -20,7 +20,7 @@ public:
 	void loseLife();
 	void shootAsteroid();
 
-	bool checkIsGameOver() { return mLives <= 0 || mAsteroids > NUMBER_ASTEROIDS_TO_WIN; }
+	bool checkIsGameOver() { return mLives <= 0 || mAsteroids >= NUMBER_ASTEROIDS_TO_WIN; }
 	bool playerWon() { return mLives > 0; }
 	int getScore() { return mAsteroids; }
 
