@@ -2,7 +2,7 @@
 
 if [ "$1" == "-b" ]
 then
-  mkdir build && cd build && cmake ..
+  mkdir build && cd build && cmake .. && make install
 elif [ "$1" == "-c" ]
 then
   rm -rf bin/ build/
