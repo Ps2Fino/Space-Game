@@ -121,7 +121,13 @@ int main (int argc, char **argv)
 
 	status = SoundFX::loadLaserSound();
 	if (status != 0)
-		return 1;	
+		return 1;
+
+	status = SoundFX::loadMusic();
+	if (status != 0)
+		return 1;
+
+	SoundFX::startMusic();
 
 	// Create the background and the ship
 	std::string bgImagePath = getResourcePath() + "img/" + levels[level];
@@ -162,7 +168,6 @@ int main (int argc, char **argv)
 	int fireEvent = NONE;
 	running = true;
 	unsigned int lastAsteroidTime = 0;
-
 
 	/**
 	  * This is the main game loop. It implements a state machine
@@ -347,7 +352,7 @@ void doGameOverCase(int &event, unsigned int &lastAsteroidTime)
 
 		// Another hack; we don't want to return because otherwise the new score table
 		// won't be redrawn
-		return; // Move to the game state
+		// return; // Move to the game state
 	}
 
 	// Fire an asteroid if enough time has passed

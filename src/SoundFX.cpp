@@ -5,6 +5,7 @@
 
 bool SoundFX::isReady = false;
 Mix_Chunk* SoundFX::laserBulletSound = nullptr;
+Mix_Music *SoundFX::bgMusic = nullptr;
 
 int SoundFX::initMixerLibrary()
 {
@@ -29,8 +30,13 @@ int SoundFX::initMixerLibrary()
 
 void SoundFX::shutDownMixerLibrary()
 {
+	if (Mix_PlayingMusic() != 0)
+		stopMusic();
+
 	Mix_FreeChunk(laserBulletSound);
+	Mix_FreeMusic(bgMusic);
 	laserBulletSound = NULL;
+	bgMusic = NULL;
 	Mix_Quit();
 }
 
@@ -45,6 +51,41 @@ int SoundFX::loadLaserSound()
 	}
 
 	return 0;
+}
+
+int SoundFX::loadMusic()
+{
+	std::string bgMusicPath = getResourcePath() + "sounds/music.ogg";
+	bgMusic = Mix_LoadMUS(bgMusicPath.c_str());
+	if (bgMusic == nullptr)
+	{
+		std::cout << "Couldn't load the laser sound: " << Mix_GetError() << std::endl;
+		return 1;
+	}
+
+	return 0;
+}
+
+int SoundFX::startMusic()
+{
+	if (Mix_PlayingMusic() == 0)
+	{
+		if (Mix_PlayMusic(bgMusic, -1) == -1)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+
+	return 0;
+}
+
+void SoundFX::stopMusic()
+{
+	Mix_HaltMusic();
 }
 
 void SoundFX::playLaserSound()

@@ -17,6 +17,9 @@ public:
 	static int initMixerLibrary();
 	static bool checkIsReady() { return isReady; }
 	static int loadLaserSound();
+	static int loadMusic();
+	static int startMusic();
+	static void stopMusic();
 	static void playLaserSound();
 	static void shutDownMixerLibrary();
 
@@ -24,6 +27,7 @@ private:
 
 	static bool isReady;
 	static Mix_Chunk *laserBulletSound; // The sound effect for the ship bullet
+	static Mix_Music *bgMusic; // The background music
 };
 
 #endif
