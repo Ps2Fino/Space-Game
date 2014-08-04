@@ -43,6 +43,4 @@ void Sprite::loadTexture(SDL_Renderer *renderer, std::string &surface_image_path
 		std::cout << "The texture is null" << std::endl;
 		throw textureException;
 	}
-
-	std::cout << "Load texture called successfully" << std::endl;
 }

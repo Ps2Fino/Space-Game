@@ -27,6 +27,8 @@ public:
 	void activate() { mIsActive = true; }
 	void deactivate() { mIsActive = false; }
 
+	void reset();
+
 	void draw();
 
 private:

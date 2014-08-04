@@ -18,8 +18,11 @@ Background::~Background()
 
 void Background::update(int ev, int ev2)
 {
-	// The background doesn't update.......for now ;-)
-}
+} // The background doesn't update.......for now ;-)
+
+void Background::reset()
+{
+} // Reset what? :-)
 
 void Background::draw()
 {

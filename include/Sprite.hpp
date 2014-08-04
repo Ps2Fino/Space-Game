@@ -32,6 +32,7 @@ public:
 	SDL_Rect getPosition() { return mShape; }
 
 	virtual void update(int ev1 = 0, int ev2 = 0) =0; // pure virtual method for moving the sprite
+	virtual void reset() =0; // pure virtual function for resetting the sprite
 	virtual void draw() =0; // This is the function to call in the render part of the game loop
 
 protected:

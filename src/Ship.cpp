@@ -44,6 +44,15 @@ void Ship::setMovementBoundary(int top, int bottom)
 	mBottomBoundary = bottom - mShape.h;
 }
 
+void Ship::reset()
+{
+	lastBulletTime = 0;
+	quickFire = true;
+	setPosition(SHIP_START_POSITION_X, SHIP_START_POSITION_Y);
+	for (int i = 0; i < NUMBER_BULLETS; ++i)
+		mBullets[i].get()->reset();
+}
+
 void Ship::fireBullet()
 {
 	if (quickFire)

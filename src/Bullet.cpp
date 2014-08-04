@@ -61,6 +61,12 @@ void Bullet::update(int ev, int ev2)
 	}
 }
 
+void Bullet::reset()
+{
+	mIsActive = false;
+	setPosition(0, 0);
+}
+
 void Bullet::draw()
 {
 	if (mIsActive)

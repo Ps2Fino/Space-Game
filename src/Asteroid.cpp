@@ -6,7 +6,7 @@ SDL_Texture* Asteroid::asteroidTexture = NULL;
 #include <random> // For generating random numbers
 
 Asteroid::Asteroid(SDL_Renderer *renderer)
-				: Destructible(renderer, ASTEROID_WIDTH, ASTEROID_HEIGHT, 0, 0)
+				: Destructible(renderer, ASTEROID_WIDTH, ASTEROID_HEIGHT, -ASTEROID_WIDTH, 0)
 {
 	// We've 8 to choose from
 	mTextureRegion.x = 64 * 3; // Lets pick the 3rd row across on the sprite sheet
@@ -15,6 +15,7 @@ Asteroid::Asteroid(SDL_Renderer *renderer)
 	mTextureRegion.h = ASTEROID_HEIGHT;
 
 	mVelocity = ASTEROID_VELOCITY;
+	mIsActive = true;
 }
 
 Asteroid::~Asteroid()
@@ -56,7 +57,7 @@ void Asteroid::update(int ev1, int ev2)
 	}
 }
 
-void Asteroid::resetPosition()
+void Asteroid::reset()
 {
 	mX_pos = GAME_WINDOW_WIDTH + ASTEROID_WIDTH;
 	mY_pos = 0;

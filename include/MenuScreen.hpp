@@ -20,6 +20,8 @@ public:
 
 	void draw();
 
+	void setText(std::string &text); // This function will update the text to be displayed with the font
+
 private:
 
 	SDL_Color mFGColor;
@@ -29,8 +31,6 @@ private:
 	TTF_Font *mFont; 
 	SDL_Texture *mTexture;
 	SDL_Rect mTextLocation;
-
-	void setText(); // This function will update the text to be displayed with the font
 
 };
 

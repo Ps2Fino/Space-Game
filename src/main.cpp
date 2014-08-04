@@ -24,7 +24,7 @@
 
 void doMenuCase(int &event, unsigned int &lastAsteroidTime);
 void doGameCase(int &event, int &fireEvent, unsigned int &lastAsteroidTime);
-void doGameOverCase(int &event);
+void doGameOverCase(int &event, unsigned int &lastAsteroidTime);
 
 ///////////////////////////////////////////
 //// Core functions for main //////////////
@@ -101,7 +101,6 @@ int main (int argc, char **argv)
 
 	// Create the background and the ship
 	std::string bgImagePath = getResourcePath() + "img/" + levels[level];
-	std::cout << "Playing level: " << bgImagePath << std::endl;
 	background = BackgroundPtr(new Background(renderer, bgImagePath));
 
 	if (background.get()->isTextureNull())
@@ -128,7 +127,6 @@ int main (int argc, char **argv)
 	{
 		asteroids.push_back(AsteroidPtr(new Asteroid(renderer)));
 		asteroids.back().get()->setStats(scoreTable.get()); // Add the stats table to the asteroid
-		asteroids.back().get()->activate();
 	}
 
 #ifdef LOGGING_FPS
@@ -153,6 +151,14 @@ int main (int argc, char **argv)
 
 		handleInput(gameEvent, fireEvent);
 
+		// Special input. Regardless of what state we are in, this should exit the game
+		if (gameEvent == KEY_ESCAPE_PRESSED
+			|| gameEvent == GAME_QUIT)
+		{
+			running = false;
+			continue; // Short circuit the rest of the function
+		}
+
 		// Switch on the game state
 		switch (state)
 		{
@@ -165,7 +171,7 @@ int main (int argc, char **argv)
 				break;
 
 			case GAME_OVER:
-				doGameOverCase(gameEvent);
+				doGameOverCase(gameEvent, lastAsteroidTime);
 				break;
 
 			default:
@@ -196,20 +202,6 @@ int main (int argc, char **argv)
 		}
 	}
 
-	// Deactivate the score table
-	scoreTable.get()->deactivate();
-
-	// TODO: Show the player a game over screen or something
-
-	if (scoreTable.get()->playerWon())
-	{
-		std::cout << "YOU WON!!" << std::endl;
-	}
-	else
-	{
-		std::cout << "YOU LOST" << std::endl;
-	}
-
 	// Cleanup everything. The ship, background and enemies will clean themselves
 	TTF_CloseFont(font);
 	SDL_DestroyTexture(asteroidTexture);
@@ -228,17 +220,16 @@ int main (int argc, char **argv)
 
 void doMenuCase(int &event, unsigned int &lastAsteroidTime)
 {
-	if (event == GAME_QUIT
-			|| event == KEY_ESCAPE_PRESSED)
-	{
-		running = false;
-		return;
-	}
-
 	if (event == KEY_P_PRESSED)
 	{
+		// Reset the positions of the asteroids
 		for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
-			asteroids[i].get()->resetPosition();
+			asteroids[i].get()->reset();
+
+		// Turn on the scoring table
+		scoreTable.get()->reset();
+		scoreTable.get()->activate();
+
 		state = GAME;
 		return; // Move to the game state
 	}
@@ -260,19 +251,28 @@ void doMenuCase(int &event, unsigned int &lastAsteroidTime)
 
 void doGameCase(int &event, int &fireEvent, unsigned int &lastAsteroidTime)
 {
-	if (event == KEY_ESCAPE_PRESSED
-			|| event == GAME_QUIT)
-	{
-		running = false;
-		std::cout << "Set running to false because gameEvent = " << event << std::endl;
-		return; // Short circuit the rest of the function
-	}
-
 	// Check the stats class to see if the game has ended
 	if (scoreTable.get()->checkIsGameOver())
 	{
-		running = false;
-		std::cout << "Set running to false because scoreTable said game was over" << std::endl;
+		// Turn off the score table
+		scoreTable.get()->deactivate();
+
+		// Set the menu screens' text
+		std::string gameOverText;
+		if (scoreTable.get()->playerWon())
+			gameOverText = "You won!";
+		else
+			gameOverText = "You lost";
+		menuScreen.get()->setText(gameOverText);
+
+		// Move to the game over state
+		state = GAME_OVER;
+
+		// Quick hack because the event was passed by reference. If the user doesn't press anthing
+		// the game over screen will never be played because the event will be P_PRESSED which will just automatically
+		// start the next game
+		event = NONE;
+		return;
 	}
 
 	// Fire an asteroid if enough time has passed
@@ -292,13 +292,41 @@ void doGameCase(int &event, int &fireEvent, unsigned int &lastAsteroidTime)
 
 	// Draw stuff
 	drawEntities(renderer, ship.get(), background.get(), asteroids, scoreTable.get(), NULL);
-
-	// std::cout << "doGameCase was called successfully" << std::endl;
 }
 
-void doGameOverCase(int &event)
+void doGameOverCase(int &event, unsigned int &lastAsteroidTime)
 {
-	// TODO: Implement this
+	if (event == KEY_P_PRESSED)
+	{
+		// Reset the positions of the asteroids
+		for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
+			asteroids[i].get()->reset();
+
+		// Reset the ship
+		ship.get()->reset();
+
+		// Turn on the scoring table
+		scoreTable.get()->reset();
+		scoreTable.get()->activate();
+
+		state = GAME;
+
+		// Another hack; we don't want to return because otherwise the new score table
+		// won't be redrawn
+		return; // Move to the game state
+	}
+
+	// Fire an asteroid if enough time has passed
+	if (lastAsteroidTime + ASTEROID_INTERVAL <= SDL_GetTicks())
+	{
+		ASTEROID_INTERVAL = distr(eng);
+		lastAsteroidTime = SDL_GetTicks();
+		activateAsteroid();
+	}
+
+	ship.get()->update(NONE, NONE);
+	updateEnemies(asteroids);
+	drawEntities(renderer, ship.get(), background.get(), asteroids, scoreTable.get(), menuScreen.get());
 }
 
 int loadLevel(int argc, char **argv)
@@ -395,8 +423,6 @@ void updateEnemies(std::vector<AsteroidPtr> &asteroids)
 {
 	for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
 		asteroids[i].get()->update();
-
-	// std::cout << "Update enemies called successfully" << std::endl;
 }
 
 void handleCollisions(Ship *player, std::vector<AsteroidPtr> &asteroids, Stats *scoreTable)
@@ -424,10 +450,6 @@ void handleCollisions(Ship *player, std::vector<AsteroidPtr> &asteroids, Stats *
 				if (asteroidRect.y >= bulletRect.y - ASTEROID_OFFSET
 						&& asteroidRect.y <= bulletRect.y + BULLET_COLLISION_HEIGHT)
 				{
-					// std::cout << "Deactivating an asteroid at X: "
-					// 		  << asteroidRect.x << "\tY: " << asteroidRect.y
-					// 		  << "\tW: " << asteroidRect.w << "\tH: " << asteroidRect.h << "\nwith a bullet at X: "
-					// 		  << bulletRect.x << "\tY: " << bulletRect.y << "\tW: " << bulletRect.w << "\tH: " << bulletRect.h << std::endl;
 					currAsteroid.get()->deactivate();
 					currBullet.get()->deactivate();
 
@@ -438,8 +460,6 @@ void handleCollisions(Ship *player, std::vector<AsteroidPtr> &asteroids, Stats *
 			}
 		}
 	}
-
-	// std::cout << "Handle collisions called successfully" << std::endl;
 }
 
 void drawEntities(SDL_Renderer *renderer, Ship *player, 
@@ -449,25 +469,21 @@ void drawEntities(SDL_Renderer *renderer, Ship *player,
 	// Now draw the frame
 	SDL_RenderClear(renderer);
 
-	// std::cout << "ABout to draw the bg" << std::endl;
 	if (bg != nullptr)
 	{
 		bg->draw();
 	}
-	// std::cout << "Background was drawn successfully" << std::endl;
 	
 	if (!asteroids.empty())
 	{
 		for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
 			asteroids[i].get()->draw();
 	}
-	// std::cout << "Asteroids were drawn successfully" << std::endl;
 
 	if (player != nullptr)
 	{
 		player->draw();
 	}
-	// std::cout << "Ship was drawn successfully" << std::endl;
 
 	if (scoreTable != nullptr)
 	{
@@ -478,12 +494,9 @@ void drawEntities(SDL_Renderer *renderer, Ship *player,
 	{
 		menuScreen->draw();
 	}
-	// std::cout << "Score table was drawn successfully" << std::endl;
 
 	// Present everything to be rendered
 	SDL_RenderPresent(renderer);
-
-	// std::cout << "drawEntities called successfully" << std::endl;
 }
 
 /**

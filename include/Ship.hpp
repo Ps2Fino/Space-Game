@@ -28,6 +28,7 @@ public:
 	~Ship();
 
 	void update(int ev1, int ev2);
+	void reset();
 	void draw();
 
 	int getVelocity() { return mVelocity; }

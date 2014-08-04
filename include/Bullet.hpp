@@ -24,6 +24,7 @@ public:
 	// inherited methods
 	void activate(int xPos, int yPos);
 	void update(int ev1 = 0, int ev2 = 0);
+	void reset();
 	void draw();
 
 	static SDL_Texture *bulletTexture; // Shared bullet texture

@@ -25,6 +25,7 @@ public:
 
 	// inherited methods
 	virtual void update(int ev1 = 0, int ev2 = 0) =0;
+	virtual void reset() =0;
 	virtual void draw() =0;
 
 protected:
