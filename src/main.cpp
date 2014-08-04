@@ -22,7 +22,7 @@
 //// Core functions for the state machine /
 ///////////////////////////////////////////
 
-void doMenuCase(int &event);
+void doMenuCase(int &event, unsigned int &lastAsteroidTime);
 void doGameCase(int &event, int &fireEvent, unsigned int &lastAsteroidTime);
 void doGameOverCase(int &event);
 
@@ -128,6 +128,7 @@ int main (int argc, char **argv)
 	{
 		asteroids.push_back(AsteroidPtr(new Asteroid(renderer)));
 		asteroids.back().get()->setStats(scoreTable.get()); // Add the stats table to the asteroid
+		asteroids.back().get()->activate();
 	}
 
 #ifdef LOGGING_FPS
@@ -156,7 +157,7 @@ int main (int argc, char **argv)
 		switch (state)
 		{
 			case MENU:
-				doMenuCase(gameEvent);
+				doMenuCase(gameEvent, lastAsteroidTime);
 				break;
 
 			case GAME:
@@ -225,14 +226,29 @@ int main (int argc, char **argv)
 	return 0;
 }
 
-void doMenuCase(int &event)
+void doMenuCase(int &event, unsigned int &lastAsteroidTime)
 {
+	if (event == GAME_QUIT
+			|| event == KEY_ESCAPE_PRESSED)
+	{
+		running = false;
+		return;
+	}
+
 	if (event == KEY_P_PRESSED)
 	{
 		for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
 			asteroids[i].get()->resetPosition();
 		state = GAME;
 		return; // Move to the game state
+	}
+
+	// Fire an asteroid if enough time has passed
+	if (lastAsteroidTime + ASTEROID_INTERVAL <= SDL_GetTicks())
+	{
+		ASTEROID_INTERVAL = distr(eng);
+		lastAsteroidTime = SDL_GetTicks();
+		activateAsteroid();
 	}
 
 	// In the menu case, we just display the asteroids moving across the screen
