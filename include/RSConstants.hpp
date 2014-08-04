@@ -3,7 +3,7 @@
 
 // The events that the input handler will check for
 enum GAME_EVENT {
-	UP_DOWN,
+	UP_DOWN = 1,
 	DOWN_DOWN,
 	ESC_DOWN,
 	SPACE_DOWN,
@@ -11,14 +11,26 @@ enum GAME_EVENT {
 	DOWN_UP,
 	ESCAPE_UP,
 	SPACE_UP,
-	GAME_QUIT,	
-} GameEvent;
+	GAME_QUIT,
+	NONE, // A null value
+};
 
 enum GAME_STATE {
 	MENU,
 	GAME,
 	GAME_OVER,
-} state;
+};
+
+///////////////////////////////////////////
+//// Keyboard states //////////////////////
+///////////////////////////////////////////
+
+#define KEY_UP_PRESSED 0x0001
+#define KEY_DOWN_PRESSED 0x0002
+#define KEY_ESCAPE_PRESSED 0x0004
+#define KEY_SPACE_PRESSED 0x0008
+#define KEY_P_PRESSED 0x0010
+#define KEY_RELEASED 0x0000
 
 ///////////////////////////////////////////
 //// Misc definitions and constants ///////
@@ -57,6 +69,16 @@ const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 #define SCORE_TEXT_LOCATION_Y (-10)
 #define SCORE_TEXT_WIDTH 300
 #define SCORE_TEXT_HEIGHT 50
+
+///////////////////////////////////////////
+//// Menu Screen //////////////////////////
+///////////////////////////////////////////
+
+#define MENU_SCREEN_TEXT "Press p to Play"
+#define MENU_SCREEN_TEXT_LOCATION_X ((GAME_WINDOW_WIDTH / 2) - 150)
+#define MENU_SCREEN_TEXT_LOCATION_Y ((GAME_WINDOW_HEIGHT / 2) - 25)
+#define MENU_SCREEN_TEXT_WIDTH 300
+#define MENU_SCREEN_TEXT_HEIGHT 50
 
 ///////////////////////////////////////////
 //// Start positions for entities /////////

@@ -1,6 +1,8 @@
 #ifndef BACKGROUND_HPP
 #define BACKGROUND_HPP
 
+#include "RSConstants.hpp"
+
 #include <SDL.h>
 #include <SDL_image.h>
 
@@ -19,7 +21,9 @@ public:
 	Background(SDL_Renderer *renderer, std::string &imagePath);
 	~Background();
 
-	void update(GAME_EVENT ev);
+	bool isTextureNull() { return mTex == nullptr || mTex == NULL; }
+
+	void update(int ev1 = 0, int ev2 = 0);
 	void draw();
 };
 

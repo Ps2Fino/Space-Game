@@ -22,7 +22,7 @@ public:
 				int height = 0, int x = 0, int y = 0);
 	virtual ~Sprite();
 
-	void loadTexture(SDL_Renderer *renderer, std::string &surface_image_path, bool replace);
+	void loadTexture(SDL_Renderer *renderer, std::string &surface_image_path);
 	void setTexture(SDL_Texture *texture) { mTex = texture; }
 
 	void setSize(int width, int height) { mShape.w = width; mShape.h = height; } // set the size of the rect
@@ -31,7 +31,7 @@ public:
 	void setPosition(int xPos, int yPos) { mShape.x = xPos; mShape.y = yPos; }
 	SDL_Rect getPosition() { return mShape; }
 
-	virtual void update(GAME_EVENT ev  = NONE) =0; // pure virtual method for moving the sprite
+	virtual void update(int ev1 = 0, int ev2 = 0) =0; // pure virtual method for moving the sprite
 	virtual void draw() =0; // This is the function to call in the render part of the game loop
 
 protected:

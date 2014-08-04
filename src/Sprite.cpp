@@ -34,15 +34,15 @@ Sprite::~Sprite()
 {
 }
 
-void Sprite::loadTexture(SDL_Renderer *renderer, std::string &surface_image_path, bool replace)
+void Sprite::loadTexture(SDL_Renderer *renderer, std::string &surface_image_path)
 {
-	if ((mTex != nullptr && replace)
-		|| mTex == nullptr)
-		mTex = IMG_LoadTexture(renderer, surface_image_path.c_str());
+	mTex = IMG_LoadTexture(renderer, surface_image_path.c_str());
 
-	if (mTex == nullptr)
+	if (mTex == nullptr || mTex == NULL)
 	{
 		std::cout << "The texture is null" << std::endl;
 		throw textureException;
 	}
+
+	std::cout << "Load texture called successfully" << std::endl;
 }

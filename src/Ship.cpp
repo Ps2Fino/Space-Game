@@ -6,9 +6,10 @@
 Ship::Ship(SDL_Renderer *renderer, std::string &imagePath, std::string &bulletImagePath,
 				int width, int height, int x, int y) 
 					: Sprite(renderer, width, height, x, y), 
-					mVelocity(SHIP_VELOCITY)
+					mVelocity(SHIP_VELOCITY), bulletInterval(BULLET_INTERVAL),
+					lastBulletTime(0), quickFire(true)
 {
-	loadTexture(renderer, imagePath, false);
+	loadTexture(renderer, imagePath);
 
 	// Grab a uni distro generator
 	std::random_device rd; // obtain a random number from hardware
@@ -45,36 +46,56 @@ void Ship::setMovementBoundary(int top, int bottom)
 
 void Ship::fireBullet()
 {
-	for (int i = 0; i < NUMBER_BULLETS; ++i)
+	if (quickFire)
 	{
-		Bullet *currBullet = mBullets[i].get();
+		if (lastBulletTime + bulletInterval <= SDL_GetTicks())
+		{
+			lastBulletTime = SDL_GetTicks();
+			for (int i = 0; i < NUMBER_BULLETS; ++i)
+			{
+				Bullet *currBullet = mBullets[i].get();
+				if (!currBullet->checkIsActivated())
+				{
+					currBullet->activate(mX_pos, mY_pos - 10);
+					// Play the sound effect
+					SoundFX::playLaserSound();
+					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		Bullet *currBullet = mBullets[0].get(); // We always only fire the first bullet if its not active already
 		if (!currBullet->checkIsActivated())
 		{
 			currBullet->activate(mX_pos, mY_pos - 10);
-			break;
+			SoundFX::playLaserSound();
 		}
 	}
-
-	// Play the sound effect
-	SoundFX::playLaserSound();
 }
 
-void Ship::update(GAME_EVENT ev)
+void Ship::update(int ev1, int ev2)
 {
+	// std::cout << "Ship::update GAME_EVENT ev = " << ev << std::endl;
 	int tempY = mY_pos;
-	switch(ev)
+
+	switch(ev1)
 	{
-		case UP:
+		case KEY_UP_PRESSED:
 			mY_pos -= 1 * mVelocity;
 			break;
 
-		case DOWN:
+		case KEY_DOWN_PRESSED:
 			mY_pos += 1 * mVelocity;
-			break;			
+			break;
 
 		default:
 			break;
 	}
+
+	if (ev2 == KEY_SPACE_PRESSED)
+		fireBullet();
 
 	// Update the box we live in based on the boundary set
 	if (mY_pos > mTopBoundary
@@ -91,6 +112,8 @@ void Ship::update(GAME_EVENT ev)
 	// mBullet.get()->update();
 	for (int i = 0; i < NUMBER_BULLETS; ++i)
 		mBullets[i].get()->update();
+
+	// std::cout << "Ship::update called successfully" << std::endl;
 }
 
 void Ship::draw()

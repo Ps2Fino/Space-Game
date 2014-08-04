@@ -24,7 +24,7 @@ public:
 	virtual void activate(int xPos = 0, int yPos = 0) =0;
 
 	// inherited methods
-	virtual void update(GAME_EVENT event = NONE) =0;
+	virtual void update(int ev1 = 0, int ev2 = 0) =0;
 	virtual void draw() =0;
 
 protected:

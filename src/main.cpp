@@ -16,6 +16,15 @@
 #include "Asteroid.hpp"
 #include "Stats.hpp"
 #include "SoundFX.hpp"
+#include "MenuScreen.hpp"
+
+///////////////////////////////////////////
+//// Core functions for the state machine /
+///////////////////////////////////////////
+
+void doMenuCase(int &event);
+void doGameCase(int &event, int &fireEvent, unsigned int &lastAsteroidTime);
+void doGameOverCase(int &event);
 
 ///////////////////////////////////////////
 //// Core functions for main //////////////
@@ -23,15 +32,16 @@
 
 int initSDL(SDL_Window **window, SDL_Renderer **renderer, TTF_Font **font);
 
-void handleInput(bool &running, GAME_EVENT &playerEvent, bool &fire);
+void handleInput(int &playerEvent, int &fireEvent);
 
-void updateEnemies(std::vector<AsteroidPtr> &asteroids, Stats &scoreTable); // Update the vector of asteroids
+void updateEnemies(std::vector<AsteroidPtr> &asteroids); // Update the vector of asteroids
 
-void handleCollisions(Ship &player, std::vector<AsteroidPtr> &asteroids, 
-						Stats &scoreTable); // Simple collision checker for everything
+void handleCollisions(Ship *player, std::vector<AsteroidPtr> &asteroids, 
+						Stats *scoreTable); // Simple collision checker for everything
 
-void drawEntities(SDL_Renderer *renderer, Ship &player, 
-					Background &bg, std::vector<AsteroidPtr> &asteroids, Stats &scoreTable);
+void drawEntities(SDL_Renderer *renderer, Ship *player, 
+					Background *bg, std::vector<AsteroidPtr> &asteroids, 
+					Stats *scoreTable, MenuScreen *menuScreen);
 
 void activateAsteroid();
 int loadLevel(int argc, char **argv);
@@ -52,6 +62,16 @@ std::vector<AsteroidPtr> asteroids;
 ShipPtr ship;
 BackgroundPtr background;
 StatsPtr scoreTable;
+MenuScreenPtr menuScreen;
+
+bool running; // The main program loop variable
+GAME_STATE state = MENU; // The state of the game
+
+// Have a variable delay for the asteroids
+std::random_device rd; // obtain a random number from hardware
+std::mt19937 eng(rd()); // seed the generator
+std::uniform_int_distribution<> distr(ASTEROID_INTERVAL_RANGE_MIN, ASTEROID_INTERVAL_RANGE_MAX); // define the range
+signed int ASTEROID_INTERVAL = distr(eng); // Random time interval
 
 /**
   * This game runs in the main function of the application
@@ -84,6 +104,14 @@ int main (int argc, char **argv)
 	std::cout << "Playing level: " << bgImagePath << std::endl;
 	background = BackgroundPtr(new Background(renderer, bgImagePath));
 
+	if (background.get()->isTextureNull())
+	{
+		std::cout << "The background texture is nullptr" << std::endl;
+	}
+
+	// Create the menuscreen
+	menuScreen = MenuScreenPtr(new MenuScreen(renderer, font));
+
 	std::string shipImagePath = getResourcePath() + "img/ship.png";
 	std::string bulletImagePath = getResourcePath() + "img/bullet_strip.png";
 	ship = ShipPtr(new Ship(renderer, shipImagePath, bulletImagePath));
@@ -95,38 +123,34 @@ int main (int argc, char **argv)
 	std::string asteroidImagePath = getResourcePath() + "img/asteroid.png";
 	SDL_Texture *asteroidTexture = IMG_LoadTexture(renderer, asteroidImagePath.c_str());
 	Asteroid::asteroidTexture = asteroidTexture; // Set the asteroid texture
+
 	for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
 	{
 		asteroids.push_back(AsteroidPtr(new Asteroid(renderer)));
-		asteroids.back().get()->setStats(&scoreTable); // Add the stats table to the asteroid
+		asteroids.back().get()->setStats(scoreTable.get()); // Add the stats table to the asteroid
 	}
-
-	// Some variables necessary for the game loop
-	bool running = true;
-	GAME_EVENT gameEvent; // For controlling the ship
-	bool fire = false;
-
-	// Have a delay for firing bullets
-	const signed int BULLET_INTERVAL = 300;
-	unsigned int lastBulletTime = 0;
-
-	// Have a variable delay for the asteroids too
-	std::random_device rd; // obtain a random number from hardware
-    std::mt19937 eng(rd()); // seed the generator
-    std::uniform_int_distribution<> distr(ASTEROID_INTERVAL_RANGE_MIN, ASTEROID_INTERVAL_RANGE_MAX); // define the range
-	signed int ASTEROID_INTERVAL = distr(eng); // Random time interval
-	unsigned int lastAsteroidTime = 0;
 
 #ifdef LOGGING_FPS
 	int countedFrames = 0;
 	Uint32 fpsStartTime = SDL_GetTicks();
 #endif
 
-	while (!scoreTable.checkIsGameOver() && running)
+	int gameEvent = NONE;
+	int fireEvent = NONE;
+	running = true;
+	unsigned int lastAsteroidTime = 0;
+
+
+	/**
+	  * This is the main game loop. It implements a state machine
+	  * consisting of 3 states: The menu screen, the game screen
+	  * and the game over screen
+	  */
+	while (running)
 	{
 		Uint32 frameStartTime = SDL_GetTicks();
 
-		handleInput(gameEvent);
+		handleInput(gameEvent, fireEvent);
 
 		// Switch on the game state
 		switch (state)
@@ -136,7 +160,7 @@ int main (int argc, char **argv)
 				break;
 
 			case GAME:
-				doGameCase(gameEvent, lastBulletTime, lastAsteroidTime);
+				doGameCase(gameEvent, fireEvent, lastAsteroidTime);
 				break;
 
 			case GAME_OVER:
@@ -172,15 +196,15 @@ int main (int argc, char **argv)
 	}
 
 	// Deactivate the score table
-	scoreTable.deactivate();
+	scoreTable.get()->deactivate();
 
 	// TODO: Show the player a game over screen or something
 
-	if (running && scoreTable.playerWon())
+	if (scoreTable.get()->playerWon())
 	{
 		std::cout << "YOU WON!!" << std::endl;
 	}
-	else if (running)
+	else
 	{
 		std::cout << "YOU LOST" << std::endl;
 	}
@@ -201,18 +225,38 @@ int main (int argc, char **argv)
 	return 0;
 }
 
-void doMenuCase(GAME_EVENT &event)
+void doMenuCase(int &event)
 {
-	// TODO: Implement this
+	if (event == KEY_P_PRESSED)
+	{
+		for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
+			asteroids[i].get()->resetPosition();
+		state = GAME;
+		return; // Move to the game state
+	}
+
+	// In the menu case, we just display the asteroids moving across the screen
+	// and display the "press space to play button"
+
+	updateEnemies(asteroids);
+	drawEntities(renderer, NULL, background.get(), asteroids, NULL, menuScreen.get());
 }
 
-void doGameCase(GAME_EVENT &event, unsigned int &lastBulletTime, unsigned int &lastAsteroidTime)
+void doGameCase(int &event, int &fireEvent, unsigned int &lastAsteroidTime)
 {
-	// Fire a bullet if enough time has passed
-	if (fire && (lastBulletTime + BULLET_INTERVAL <= SDL_GetTicks()))
+	if (event == KEY_ESCAPE_PRESSED
+			|| event == GAME_QUIT)
 	{
-		lastBulletTime = SDL_GetTicks();
-		ship.get()->fireBullet();
+		running = false;
+		std::cout << "Set running to false because gameEvent = " << event << std::endl;
+		return; // Short circuit the rest of the function
+	}
+
+	// Check the stats class to see if the game has ended
+	if (scoreTable.get()->checkIsGameOver())
+	{
+		running = false;
+		std::cout << "Set running to false because scoreTable said game was over" << std::endl;
 	}
 
 	// Fire an asteroid if enough time has passed
@@ -224,17 +268,19 @@ void doGameCase(GAME_EVENT &event, unsigned int &lastBulletTime, unsigned int &l
 	}
 
 	// Update the player ship and the asteroid belt
-	player.update(gameEvent);
-	updateEnemies(asteroids, scoreTable);
+	ship.get()->update(event, fireEvent);
+	updateEnemies(asteroids);
 
 	// Check collisions here
-	handleCollisions(player, asteroids, scoreTable);
+	handleCollisions(ship.get(), asteroids, scoreTable.get());
 
 	// Draw stuff
-	drawEntities(renderer, player, levelBG, asteroids, scoreTable);
+	drawEntities(renderer, ship.get(), background.get(), asteroids, scoreTable.get(), NULL);
+
+	// std::cout << "doGameCase was called successfully" << std::endl;
 }
 
-void doGameOverCase(GAME_EVENT &event)
+void doGameOverCase(int &event)
 {
 	// TODO: Implement this
 }
@@ -329,13 +375,15 @@ int initSDL(SDL_Window **window, SDL_Renderer **renderer, TTF_Font **font)
 	return 0;
 }
 
-void updateEnemies(std::vector<AsteroidPtr> &asteroids, Stats &scoreTable)
+void updateEnemies(std::vector<AsteroidPtr> &asteroids)
 {
 	for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
 		asteroids[i].get()->update();
+
+	// std::cout << "Update enemies called successfully" << std::endl;
 }
 
-void handleCollisions(Ship &player, std::vector<AsteroidPtr> &asteroids, Stats &scoreTable)
+void handleCollisions(Ship *player, std::vector<AsteroidPtr> &asteroids, Stats *scoreTable)
 {
 	for (std::vector<AsteroidPtr>::iterator asteroidIt = asteroids.begin(); asteroidIt != asteroids.end(); ++asteroidIt)
 	{
@@ -345,7 +393,7 @@ void handleCollisions(Ship &player, std::vector<AsteroidPtr> &asteroids, Stats &
 			continue; // An inactive asteroid can't be hit anyways
 
 		SDL_Rect asteroidRect = currAsteroid.get()->getSize();
-		std::vector<BulletPtr> bullets = player.getBullets();
+		std::vector<BulletPtr> bullets = player->getBullets();
 		for (std::vector<BulletPtr>::iterator bulletIt = bullets.begin(); bulletIt != bullets.end(); ++bulletIt)
 		{
 			BulletPtr currBullet = *bulletIt;
@@ -368,31 +416,58 @@ void handleCollisions(Ship &player, std::vector<AsteroidPtr> &asteroids, Stats &
 					currBullet.get()->deactivate();
 
 					// record the score
-					scoreTable.shootAsteroid();
+					scoreTable->shootAsteroid();
 					break;
 				}
 			}
 		}
 	}
+
+	// std::cout << "Handle collisions called successfully" << std::endl;
 }
 
-void drawEntities(SDL_Renderer *renderer, Ship &player, 
-					Background &bg, std::vector<AsteroidPtr> &asteroids, Stats &scoreTable)
+void drawEntities(SDL_Renderer *renderer, Ship *player, 
+					Background *bg, std::vector<AsteroidPtr> &asteroids, 
+					Stats *scoreTable, MenuScreen *menuScreen)
 {
 	// Now draw the frame
 	SDL_RenderClear(renderer);
 
-	bg.draw();
+	// std::cout << "ABout to draw the bg" << std::endl;
+	if (bg != nullptr)
+	{
+		bg->draw();
+	}
+	// std::cout << "Background was drawn successfully" << std::endl;
 	
-	for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
-		asteroids[i].get()->draw();
+	if (!asteroids.empty())
+	{
+		for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
+			asteroids[i].get()->draw();
+	}
+	// std::cout << "Asteroids were drawn successfully" << std::endl;
 
-	player.draw();
+	if (player != nullptr)
+	{
+		player->draw();
+	}
+	// std::cout << "Ship was drawn successfully" << std::endl;
 
-	scoreTable.draw();
+	if (scoreTable != nullptr)
+	{
+		scoreTable->draw();
+	}
+
+	if (menuScreen != nullptr)
+	{
+		menuScreen->draw();
+	}
+	// std::cout << "Score table was drawn successfully" << std::endl;
 
 	// Present everything to be rendered
 	SDL_RenderPresent(renderer);
+
+	// std::cout << "drawEntities called successfully" << std::endl;
 }
 
 /**
@@ -400,7 +475,7 @@ void drawEntities(SDL_Renderer *renderer, Ship &player,
   * 4 buttons as input: Up, down, space bar and escape
   * This function checks which one was pressed and acts accordingly
   */
-void handleInput(GAME_EVENT &gameEvent)
+void handleInput(int &gameEvent, int &fireEvent)
 {
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
@@ -411,19 +486,23 @@ void handleInput(GAME_EVENT &gameEvent)
 				switch (event.key.keysym.sym)
 				{
 					case SDLK_UP:
-						gameEvent = UP_DOWN;
+						gameEvent = KEY_UP_PRESSED;
 						break;
 
 					case SDLK_DOWN:
-						gameEvent = DOWN_DOWN;
+						gameEvent = KEY_DOWN_PRESSED;
 						break;
 
 					case SDLK_ESCAPE:
-						gameEvent = ESC_DOWN;
+						gameEvent = KEY_ESCAPE_PRESSED;
 						break;
 
 					case SDLK_SPACE:
-						gameEvent = SPACE_DOWN;
+						fireEvent = KEY_SPACE_PRESSED;
+						break;
+
+					case SDLK_p:
+						gameEvent = KEY_P_PRESSED;
 						break;
 
 					default:
@@ -435,19 +514,19 @@ void handleInput(GAME_EVENT &gameEvent)
 				switch (event.key.keysym.sym)
 				{
 					case SDLK_UP:
-						gameEvent = UP_UP;
+						gameEvent = KEY_RELEASED;
 						break;
 
 					case SDLK_DOWN:
-						gameEvent = DOWN_UP;
+						gameEvent = KEY_RELEASED;
 						break;
 
 					case SDLK_ESCAPE:
-						gameEvent = ESCAPE_UP;
+						gameEvent = KEY_RELEASED;
 						break;
 
 					case SDLK_SPACE:
-						gameEvent = SPACE_UP;
+						fireEvent = KEY_RELEASED;
 						break;
 
 					default:

@@ -38,7 +38,7 @@ void Asteroid::activate(int xPos, int yPos)
 	}
 }
 
-void Asteroid::update(GAME_EVENT ev)
+void Asteroid::update(int ev1, int ev2)
 {
 	if (mIsActive)
 	{
@@ -54,6 +54,15 @@ void Asteroid::update(GAME_EVENT ev)
 			deactivate();
 		}
 	}
+}
+
+void Asteroid::resetPosition()
+{
+	mX_pos = GAME_WINDOW_WIDTH + ASTEROID_WIDTH;
+	mY_pos = 0;
+	mShape.x = mX_pos;
+	mShape.y = mY_pos;
+	mIsActive = false;
 }
 
 void Asteroid::draw()

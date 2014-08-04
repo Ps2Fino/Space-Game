@@ -49,7 +49,7 @@ void Bullet::activate(int xPos, int yPos)
 	}
 }
 
-void Bullet::update(GAME_EVENT ev)
+void Bullet::update(int ev, int ev2)
 {
 	// Couldn't be simpler :-)
 	if (mIsActive)

@@ -11,6 +11,8 @@
 #include "Sprite.hpp"
 #include "Bullet.hpp"
 
+#define BULLET_INTERVAL 300
+
 /**
  * This Ship class is a special
  * child of Sprite. It allows the player to move up
@@ -25,7 +27,7 @@ public:
 			int x = SHIP_START_POSITION_X, int y = SHIP_START_POSITION_Y);
 	~Ship();
 
-	void update(GAME_EVENT ev);
+	void update(int ev1, int ev2);
 	void draw();
 
 	int getVelocity() { return mVelocity; }
@@ -44,6 +46,11 @@ private:
 
 	// An array of Bullets
 	std::vector<BulletPtr> mBullets;
+
+	// The delay for a bullet to fire when rapid fire is enabled
+	const signed int bulletInterval;
+	signed int lastBulletTime;
+	bool quickFire;
 };
 
 typedef boost::shared_ptr<Ship> ShipPtr;
