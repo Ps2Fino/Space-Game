@@ -3,7 +3,11 @@
 // Initialize the static texture variable
 SDL_Texture* Asteroid::asteroidTexture = NULL;
 
-#include <random> // For generating random numbers
+#ifdef USE_CPP_RANDOM
+	#include <random> // For generating random numbers
+#else
+	#include <cstdlib> // For generating random numbers
+#endif
 
 Asteroid::Asteroid(SDL_Renderer *renderer)
 				: Destructible(renderer, ASTEROID_WIDTH, ASTEROID_HEIGHT, -ASTEROID_WIDTH, 0)
@@ -28,11 +32,16 @@ void Asteroid::activate(int xPos, int yPos)
 	{
 		mIsActive = true;
 		mX_pos = GAME_WINDOW_WIDTH + ASTEROID_WIDTH; // The edge of the game sceen plus the width of the asteroid sprite
-		
+
+#ifdef USE_CPP_RANDOM
 		std::random_device rd; // obtain a random number from hardware
 	    std::mt19937 eng(rd()); // seed the generator
 	    std::uniform_int_distribution<> distr(0, GAME_WINDOW_HEIGHT - ASTEROID_HEIGHT); // define the range
 	    mY_pos = distr(eng); // Random y position
+#else
+	    int randomY = rand() % ((GAME_WINDOW_HEIGHT - ASTEROID_HEIGHT) + 1);
+	    mY_pos = randomY;
+#endif
 
 		mShape.x = mX_pos;
 		mShape.y = mY_pos;

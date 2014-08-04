@@ -2,7 +2,15 @@
 #include <SDL_image.h> // For loading textures from pngs
 #include <iostream>
 #include <vector> // For the std::vector data structure
-#include <random> // For random bullet colors
+
+#ifdef USE_CPP_RANDOM
+	#include <random> // For random bullet colors
+#else
+	#include <cstdlib> // For random
+	#include <ctime> // For time()
+#endif
+
+
 #include <SDL_ttf.h> // For drawing text to the screen
 
 #include "RSConstants.hpp"
@@ -67,11 +75,15 @@ MenuScreenPtr menuScreen;
 bool running; // The main program loop variable
 GAME_STATE state = MENU; // The state of the game
 
+#ifdef USE_CPP_RANDOM
 // Have a variable delay for the asteroids
-std::random_device rd; // obtain a random number from hardware
-std::mt19937 eng(rd()); // seed the generator
-std::uniform_int_distribution<> distr(ASTEROID_INTERVAL_RANGE_MIN, ASTEROID_INTERVAL_RANGE_MAX); // define the range
-signed int ASTEROID_INTERVAL = distr(eng); // Random time interval
+	std::random_device rd; // obtain a random number from hardware
+	std::mt19937 eng(rd()); // seed the generator
+	std::uniform_int_distribution<> distr(ASTEROID_INTERVAL_RANGE_MIN, ASTEROID_INTERVAL_RANGE_MAX); // define the range
+	signed int ASTEROID_INTERVAL = distr(eng); // Random time interval
+#else
+	signed int ASTEROID_INTERVAL; // Just declare it for now
+#endif
 
 /**
   * This game runs in the main function of the application
@@ -81,6 +93,11 @@ signed int ASTEROID_INTERVAL = distr(eng); // Random time interval
   */
 int main (int argc, char **argv)
 {
+#ifndef USE_CPP_RANDOM
+	srand(time(NULL)); // Set the seed
+	int randomNum = rand() % ASTEROID_INTERVAL_RANGE_MIN + (ASTEROID_INTERVAL_RANGE_MAX + 1);
+	ASTEROID_INTERVAL = randomNum;
+#endif
 	// Get the level we want to play as
 	int level = PLAY_LEVEL;
 	level = loadLevel(argc, argv);
@@ -237,7 +254,12 @@ void doMenuCase(int &event, unsigned int &lastAsteroidTime)
 	// Fire an asteroid if enough time has passed
 	if (lastAsteroidTime + ASTEROID_INTERVAL <= SDL_GetTicks())
 	{
+#ifdef USE_CPP_RANDOM
 		ASTEROID_INTERVAL = distr(eng);
+#else
+		int randomNum = rand() % ASTEROID_INTERVAL_RANGE_MIN + (ASTEROID_INTERVAL_RANGE_MAX + 1);
+		ASTEROID_INTERVAL = randomNum;
+#endif
 		lastAsteroidTime = SDL_GetTicks();
 		activateAsteroid();
 	}
@@ -278,7 +300,12 @@ void doGameCase(int &event, int &fireEvent, unsigned int &lastAsteroidTime)
 	// Fire an asteroid if enough time has passed
 	if (lastAsteroidTime + ASTEROID_INTERVAL <= SDL_GetTicks())
 	{
+#ifdef USE_CPP_RANDOM
 		ASTEROID_INTERVAL = distr(eng);
+#else
+		int randomNum = rand() % ASTEROID_INTERVAL_RANGE_MIN + (ASTEROID_INTERVAL_RANGE_MAX + 1);
+		ASTEROID_INTERVAL = randomNum;
+#endif
 		lastAsteroidTime = SDL_GetTicks();
 		activateAsteroid();
 	}
@@ -319,7 +346,12 @@ void doGameOverCase(int &event, unsigned int &lastAsteroidTime)
 	// Fire an asteroid if enough time has passed
 	if (lastAsteroidTime + ASTEROID_INTERVAL <= SDL_GetTicks())
 	{
+#ifdef USE_CPP_RANDOM
 		ASTEROID_INTERVAL = distr(eng);
+#else
+		int randomNum = rand() % ASTEROID_INTERVAL_RANGE_MIN + (ASTEROID_INTERVAL_RANGE_MAX + 1);
+		ASTEROID_INTERVAL = randomNum;
+#endif
 		lastAsteroidTime = SDL_GetTicks();
 		activateAsteroid();
 	}

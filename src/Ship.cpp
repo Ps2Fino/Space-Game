@@ -1,6 +1,11 @@
 #include "Ship.hpp"
 
-#include <random> // For random bullet colors
+#ifdef USE_CPP_RANDOM
+	#include <random> // For random bullet colors
+#else
+	#include <cstdlib>
+#endif
+
 #include "SoundFX.hpp" // For the bullet sounds
 
 Ship::Ship(SDL_Renderer *renderer, std::string &imagePath, std::string &bulletImagePath,
@@ -11,10 +16,12 @@ Ship::Ship(SDL_Renderer *renderer, std::string &imagePath, std::string &bulletIm
 {
 	loadTexture(renderer, imagePath);
 
+#ifdef USE_CPP_RANDOM
 	// Grab a uni distro generator
 	std::random_device rd; // obtain a random number from hardware
     std::mt19937 eng(rd()); // seed the generator
     std::uniform_int_distribution<> distr(0, 2); // define the range
+#endif
 
 	// Let's create our bullet here
 	mBulletTexture = IMG_LoadTexture(renderer, bulletImagePath.c_str());
@@ -22,7 +29,11 @@ Ship::Ship(SDL_Renderer *renderer, std::string &imagePath, std::string &bulletIm
 	for (int i = 0; i < NUMBER_BULLETS; ++i)
 	{
 		// Vary the bullet colors
+#ifdef USE_CPP_RANDOM
 		int bulletColor = distr(eng);
+#else
+		int bulletColor = rand() % 3;
+#endif
 		mBullets.push_back(BulletPtr(new Bullet(renderer, bulletColor))); // Make yellow bullets
 	}
 

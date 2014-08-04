@@ -1,6 +1,8 @@
 #ifndef RS_CONSTANTS
 #define RS_CONSTANTS
 
+// #define USE_CPP_RANDOM // uncomment this to use the experimental 64 bit <random> library
+
 // The events that the input handler will check for
 enum GAME_EVENT {
 	UP_DOWN = 1,
