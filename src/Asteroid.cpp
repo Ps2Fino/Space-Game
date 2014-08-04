@@ -1,4 +1,6 @@
 #include "Asteroid.hpp"
+#include "Stats.hpp"
+#include "RSConstants.hpp"
 
 // Initialize the static texture variable
 SDL_Texture* Asteroid::asteroidTexture = NULL;

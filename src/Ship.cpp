@@ -97,7 +97,6 @@ void Ship::fireBullet()
 
 void Ship::update(int ev1, int ev2)
 {
-	// std::cout << "Ship::update GAME_EVENT ev = " << ev << std::endl;
 	int tempY = mY_pos;
 
 	switch(ev1)
@@ -129,11 +128,8 @@ void Ship::update(int ev1, int ev2)
 	}
 
 	// Call update on the bullet
-	// mBullet.get()->update();
 	for (int i = 0; i < NUMBER_BULLETS; ++i)
 		mBullets[i].get()->update();
-
-	// std::cout << "Ship::update called successfully" << std::endl;
 }
 
 void Ship::draw()

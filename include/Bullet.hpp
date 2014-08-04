@@ -1,11 +1,8 @@
 #ifndef BULLET_HPP
 #define BULLET_HPP
 
-#include "RSConstants.hpp"
-
 #include <SDL.h>
 #include <SDL_image.h>
-
 #include "boost/shared_ptr.hpp"
 #include "Destructible.hpp"
 

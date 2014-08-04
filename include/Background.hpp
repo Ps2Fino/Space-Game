@@ -1,8 +1,6 @@
 #ifndef BACKGROUND_HPP
 #define BACKGROUND_HPP
 
-#include "RSConstants.hpp"
-
 #include <SDL.h>
 #include <SDL_image.h>
 

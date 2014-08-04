@@ -54,6 +54,14 @@ void drawEntities(SDL_Renderer *renderer, Ship *player,
 void activateAsteroid();
 int loadLevel(int argc, char **argv);
 
+///////////////////////////////////////////
+//// Global variables for the game ////////
+///////////////////////////////////////////
+
+/**
+  * This is bad practice. In general, you shouldn't do this.
+  */
+
 const char *levels[4] = {
 	"lv1-bg.png",
 	"lv2-bg.png",
@@ -61,7 +69,6 @@ const char *levels[4] = {
 	"lv4-bg.png"
 };
 
-// Global variables. This is bad practice, don't do this. My excuse is its 01:32 am
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 TTF_Font *font = NULL;

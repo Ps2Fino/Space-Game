@@ -1,4 +1,5 @@
 #include "Bullet.hpp"
+#include "RSConstants.hpp"
 
 // Initialize the static texture variable
 SDL_Texture* Bullet::bulletTexture = NULL;

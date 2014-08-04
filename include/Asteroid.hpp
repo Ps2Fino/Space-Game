@@ -1,14 +1,12 @@
 #ifndef ASTEROID_HPP
 #define ASTEROID_HPP
 
-#include "RSConstants.hpp"
-
 #include <SDL.h>
 #include <SDL_image.h>
-
-#include "boost/shared_ptr.hpp"
-#include "Stats.hpp"
 #include "Destructible.hpp"
+#include "boost/shared_ptr.hpp"
+
+class Stats; // Forward declaration
 
 /**
   * An asteroid doesn't do much.

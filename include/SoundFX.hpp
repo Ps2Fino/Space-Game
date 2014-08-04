@@ -4,8 +4,6 @@
 #include <SDL.h>
 #include <SDL_mixer.h>
 
-#include "RSConstants.hpp"
-
 /**
   * This is the class that wraps
   * around the SDL mixer library
