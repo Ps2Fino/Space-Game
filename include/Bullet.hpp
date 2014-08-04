@@ -6,6 +6,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 
+#include "boost/shared_ptr.hpp"
 #include "Destructible.hpp"
 
 /**
@@ -22,10 +23,13 @@ public:
 
 	// inherited methods
 	void activate(int xPos, int yPos);
-	void update(GAME_EVENT event = NONE);
+	void update(int ev1 = 0, int ev2 = 0);
+	void reset();
 	void draw();
 
 	static SDL_Texture *bulletTexture; // Shared bullet texture
 };
+
+typedef boost::shared_ptr<Bullet> BulletPtr;
 
 #endif

@@ -49,7 +49,7 @@ void Bullet::activate(int xPos, int yPos)
 	}
 }
 
-void Bullet::update(GAME_EVENT ev)
+void Bullet::update(int ev, int ev2)
 {
 	// Couldn't be simpler :-)
 	if (mIsActive)
@@ -59,6 +59,12 @@ void Bullet::update(GAME_EVENT ev)
 		if (mX_pos > GAME_WINDOW_WIDTH)
 			deactivate();
 	}
+}
+
+void Bullet::reset()
+{
+	mIsActive = false;
+	setPosition(0, 0);
 }
 
 void Bullet::draw()

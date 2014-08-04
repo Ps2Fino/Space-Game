@@ -6,7 +6,10 @@ then
 elif [ "$1" == "-c" ]
 then
   rm -rf bin/ build/
+elif [ "$1" == "-m" ]
+then
+  cd build && make install
 else
-  echo "usage: compile.sh -b|-c"
+  echo "usage: compile.sh -b|-c|-m"
 fi
 

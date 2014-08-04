@@ -25,7 +25,8 @@ public:
 	void activate(int xPos = 0, int yPos = 0);
 
 	// inherited methods
-	void update(GAME_EVENT event = NONE);
+	void update(int ev1 = 0, int ev2 = 0);
+	void reset();
 	void draw();
 
 	void setStats(Stats *stats) { mScoreTable = stats; }

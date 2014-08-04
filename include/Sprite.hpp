@@ -8,20 +8,6 @@
 #include <iostream>
 
 /**
- * Declare an event enum. This is how the sprites know
- * how to update
- */
-
- enum GAME_EVENT {
- 	NONE,
- 	UP,
- 	DOWN,
- 	LEFT,
- 	FIRE,
- 	// RIGHT, // For the moment, we can't ever move to the right of the screen
- };
-
-/**
   * The Sprite class is an abstract class
   * It has an XY position as well as an SDL_Surface
   * that it uses to represent itself visually
@@ -36,7 +22,7 @@ public:
 				int height = 0, int x = 0, int y = 0);
 	virtual ~Sprite();
 
-	void loadTexture(SDL_Renderer *renderer, std::string &surface_image_path, bool replace);
+	void loadTexture(SDL_Renderer *renderer, std::string &surface_image_path);
 	void setTexture(SDL_Texture *texture) { mTex = texture; }
 
 	void setSize(int width, int height) { mShape.w = width; mShape.h = height; } // set the size of the rect
@@ -45,7 +31,8 @@ public:
 	void setPosition(int xPos, int yPos) { mShape.x = xPos; mShape.y = yPos; }
 	SDL_Rect getPosition() { return mShape; }
 
-	virtual void update(GAME_EVENT ev  = NONE) =0; // pure virtual method for moving the sprite
+	virtual void update(int ev1 = 0, int ev2 = 0) =0; // pure virtual method for moving the sprite
+	virtual void reset() =0; // pure virtual function for resetting the sprite
 	virtual void draw() =0; // This is the function to call in the render part of the game loop
 
 protected:

@@ -4,7 +4,7 @@
 #include <sstream>
 
 Stats::Stats(SDL_Renderer *renderer, TTF_Font *font) : mLives(NUMBER_PLAYER_LIVES),
-				mAsteroids(0), mIsActive(true), mFGColor({255, 0, 0}), mRenderer(renderer), mFont(font)
+				mAsteroids(0), mIsActive(false), mFGColor({255, 0, 0}), mRenderer(renderer), mFont(font)
 {
 	// Init the texture for the score
 	setText();
@@ -37,6 +37,13 @@ void Stats::shootAsteroid()
 		mAsteroids++;
 		setText();
 	}
+}
+
+void Stats::reset()
+{
+	mAsteroids = 0;
+	mLives = NUMBER_PLAYER_LIVES;
+	setText(); // Reset the text
 }
 
 void Stats::setText()
