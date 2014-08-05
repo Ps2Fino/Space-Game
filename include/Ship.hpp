@@ -9,9 +9,6 @@
 #include "boost/shared_ptr.hpp" // smart pointers for the bullets
 
 #include "Sprite.hpp"
-#include "Bullet.hpp"
-
-#define BULLET_INTERVAL 300
 
 /**
  * This Ship class is a special
@@ -22,7 +19,7 @@ class Ship : public Sprite
 {
 public:
 
-	Ship(SDL_Renderer *renderer, std::string &imagePath, std::string &bulletImagePath,
+	Ship(SDL_Renderer *renderer, std::string &imagePath,
 			int width = SHIP_WIDTH, int height = SHIP_HEIGHT,
 			int x = SHIP_START_POSITION_X, int y = SHIP_START_POSITION_Y);
 	~Ship();
@@ -33,25 +30,12 @@ public:
 
 	int getVelocity() { return mVelocity; }
 	void setVelocity(int vel) { mVelocity = vel; }
-	void fireBullet();
-	std::vector<BulletPtr> getBullets() { return mBullets; }
 
 	void setMovementBoundary(int top, int bottom); // This is the most the ship can move up and down
 
 private:
 	int mVelocity;
 	int mTopBoundary, mBottomBoundary;
-
-	// The texture to be shared across all the bullets
-	SDL_Texture *mBulletTexture;
-
-	// An array of Bullets
-	std::vector<BulletPtr> mBullets;
-
-	// The delay for a bullet to fire when rapid fire is enabled
-	const signed int bulletInterval;
-	signed int lastBulletTime;
-	bool quickFire;
 };
 
 typedef boost::shared_ptr<Ship> ShipPtr;
