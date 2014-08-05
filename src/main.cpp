@@ -220,12 +220,48 @@ void drawEntities(SDL_Renderer *renderer, Ship *ship, Background *bg)
 void handleInput(int &gameEvent, int &fireEvent)
 {
 	/**
-	  * TODO: Implement this function to grab
-	  * the latest event from SDL. Remember that
-	  * the gameEvent and fireEvent variables are
-	  * passed by reference
+	  * TODO: This function is part implemented to
+	  * allow the application to close when ESC is pressed.
+	  * Complete it to grab the latest event from SDL in order
+	  * to move the ship. Remember that the gameEvent and fireEvent
+	  * variables are passed by reference
 	  */
 
-	  SDL_Event sdl_event;
-	  while
+	SDL_Event event;
+	while (SDL_PollEvent(&event))
+	{
+		switch(event.type)
+		{
+			case SDL_KEYDOWN:
+				switch (event.key.keysym.sym)
+				{
+					case SDLK_ESCAPE:
+						gameEvent = KEY_ESCAPE_PRESSED;
+						break;
+
+					default:
+						break;
+				}
+				break;
+
+			case SDL_KEYUP:
+				switch (event.key.keysym.sym)
+				{
+					case SDLK_ESCAPE:
+						gameEvent = KEY_RELEASED;
+						break;
+
+					default:
+						break;
+				}
+				break;
+
+			case SDL_QUIT:
+				gameEvent = GAME_QUIT;
+				break;
+
+			default:
+				break;
+		}
+	}
 }
