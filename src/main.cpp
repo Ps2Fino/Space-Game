@@ -98,7 +98,11 @@ GAME_STATE state = MENU; // The state of the game
   * thread for the game loop. For this small game, it is OK
   * but try not to do this in your own projects
   */
-int main (int argc, char **argv)
+#ifdef PSP_BUILD
+  	extern "C" int main (int argc, char **argv)
+#else
+	int main (int argc, char **argv)
+#endif
 {
 #ifndef USE_CPP_RANDOM
 	srand(time(NULL)); // Set the seed
