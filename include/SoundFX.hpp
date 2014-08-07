@@ -1,6 +1,8 @@
 #ifndef SOUND_FX_HPP
 #define SOUND_FX_HPP
 
+#include "RSConstants.hpp"
+
 #include <SDL.h>
 #include <SDL_mixer.h>
 

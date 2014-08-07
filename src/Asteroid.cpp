@@ -1,5 +1,7 @@
 #include "Asteroid.hpp"
-#include "Stats.hpp"
+#ifndef BUILDING_PSP_EBOOT
+	#include "Stats.hpp"
+#endif
 #include "RSConstants.hpp"
 
 // Initialize the static texture variable
@@ -58,11 +60,13 @@ void Asteroid::update(int ev1, int ev2)
 		mShape.x = mX_pos;
 		if (mX_pos < (-1 * ASTEROID_WIDTH))
 		{
+#ifndef BUILDING_PSP_EBOOT
 			// record it in the stats, if applicable
 			if (mScoreTable != nullptr)
 			{
 				mScoreTable->loseLife();
 			}
+#endif
 			deactivate();
 		}
 	}

@@ -36,7 +36,15 @@ Sprite::~Sprite()
 
 void Sprite::loadTexture(SDL_Renderer *renderer, std::string &surface_image_path)
 {
+#ifndef BUILDING_PSP_EBOOT
 	mTex = IMG_LoadTexture(renderer, surface_image_path.c_str());
+#else
+	// In IMG_loadTexture is an SDL 2.0 function in the SDL_image exteions.
+	// I revert to the old API here
+	SDL_Surface *tempSurface = IMG_Load(surface_image_path.c_str());
+	mTex = SDL_CreateTextureFromSurface(renderer, tempSurface);
+	SDL_FreeSurface(tempSurface);
+#endif
 
 	if (mTex == nullptr || mTex == NULL)
 	{

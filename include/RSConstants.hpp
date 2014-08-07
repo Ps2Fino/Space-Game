@@ -1,6 +1,10 @@
 #ifndef RS_CONSTANTS
 #define RS_CONSTANTS
 
+#ifdef BUILDING_PSP_EBOOT
+	#define nullptr NULL
+#endif
+
 // #define USE_CPP_RANDOM // uncomment this to use the experimental 64 bit <random> library
 
 // The events that the input handler will check for

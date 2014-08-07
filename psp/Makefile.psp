@@ -1,18 +1,37 @@
 PSP_LARGE_MEMORY = 1 # Allows the use of the later psp models' extra RAM (not that this simple game will ever really need it)
 
-TARGET = controller_basic
-OBJS = main.o
+# Build the prx file for testing in an emulator
+BUILD_PRX=1
 
-INCDIR = 
+TARGET = controller_basic
+OBJS =  ../src/main.o \
+		../src/Asteroid.o \
+		../src/Background.o \
+		../src/Bullet.o \
+		../src/Destructible.o \
+		../src/SoundFX.o \
+		../src/Sprite.o
+
+INCDIR = ../include
 CFLAGS = -O2 -G0 -Wall
-CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
+# CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
+CXXFLAGS = $(CFLAGS) -fexceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
 
-LIBDIR =
-LDFLAGS =
+LIBDIR =libs
+LDFLAGS = -L./libs
 
 EXTRA_TARGETS = EBOOT.PBP
-PSP_EBOOT_TITLE = Basic controller sample
+PSP_EBOOT_TITLE = Rocket-Shooter
 
 PSPSDK=$(shell psp-config --pspsdk-path)
+
+PSPDEV = $(shell psp-config -d)
+PSPBIN = ${PSPDEV}/bin
+
+# The build archives for SDL are included in this project
+# CFLAGS += $(shell $(shell psp-config -d)/psp/bin/sdl-config --cflags) -DBUILDING_PSP_EBOOT
+CFLAGS += -I/Users/danielfinnegan/Documents/SDL2-2.0.3/include -DGNU_SOURCE=1 -DBUILDING_PSP_EBOOT
+LIBS += -lstdc++ -lpspirkeyb -lpsppower -lSDL2 -lSDL_image -lSDL_mixer
+
 include $(PSPSDK)/lib/build.mak
