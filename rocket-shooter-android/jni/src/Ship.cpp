@@ -1,0 +1,141 @@
+#include "Ship.hpp"
+
+#ifdef USE_CPP_RANDOM
+	#include <random> // For random bullet colors
+#else
+	#include <cstdlib>
+#endif
+
+#include "SoundFX.hpp" // For the bullet sounds
+
+Ship::Ship(SDL_Renderer *renderer, std::string &imagePath, std::string &bulletImagePath,
+				int width, int height, int x, int y) 
+					: Sprite(renderer, width, height, x, y), 
+					mVelocity(SHIP_VELOCITY), bulletInterval(BULLET_INTERVAL),
+					lastBulletTime(0), quickFire(true)
+{
+	loadTexture(renderer, imagePath);
+
+#ifdef USE_CPP_RANDOM
+	// Grab a uni distro generator
+	std::random_device rd; // obtain a random number from hardware
+    std::mt19937 eng(rd()); // seed the generator
+    std::uniform_int_distribution<> distr(0, 2); // define the range
+#endif
+
+	// Let's create our bullet here
+	mBulletTexture = IMG_LoadTexture(renderer, bulletImagePath.c_str());
+	Bullet::bulletTexture = mBulletTexture; // Set the shared texture for all the bullets
+	for (int i = 0; i < NUMBER_BULLETS; ++i)
+	{
+		// Vary the bullet colors
+#ifdef USE_CPP_RANDOM
+		int bulletColor = distr(eng);
+#else
+		int bulletColor = rand() % 3;
+#endif
+		mBullets.push_back(BulletPtr(new Bullet(renderer, bulletColor))); // Make yellow bullets
+	}
+
+	// Set the default boundary
+	setMovementBoundary(0, GAME_WINDOW_HEIGHT);
+
+} // See the Sprite class
+
+Ship::~Ship()
+{
+	SDL_DestroyTexture(mTex);
+	SDL_DestroyTexture(mBulletTexture);
+
+} // See the Sprite class
+
+void Ship::setMovementBoundary(int top, int bottom)
+{
+	mTopBoundary = top;
+	mBottomBoundary = bottom - mShape.h;
+}
+
+void Ship::reset()
+{
+	lastBulletTime = 0;
+	quickFire = true;
+	setPosition(SHIP_START_POSITION_X, SHIP_START_POSITION_Y);
+	for (int i = 0; i < NUMBER_BULLETS; ++i)
+		mBullets[i].get()->reset();
+}
+
+void Ship::fireBullet()
+{
+	if (quickFire)
+	{
+		if (lastBulletTime + bulletInterval <= SDL_GetTicks())
+		{
+			lastBulletTime = SDL_GetTicks();
+			for (int i = 0; i < NUMBER_BULLETS; ++i)
+			{
+				Bullet *currBullet = mBullets[i].get();
+				if (!currBullet->checkIsActivated())
+				{
+					currBullet->activate(mX_pos, mY_pos - 10);
+					// Play the sound effect
+					SoundFX::playLaserSound();
+					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		Bullet *currBullet = mBullets[0].get(); // We always only fire the first bullet if its not active already
+		if (!currBullet->checkIsActivated())
+		{
+			currBullet->activate(mX_pos, mY_pos - 10);
+			SoundFX::playLaserSound();
+		}
+	}
+}
+
+void Ship::update(int ev1, int ev2)
+{
+	int tempY = mY_pos;
+
+	switch(ev1)
+	{
+		case KEY_UP_PRESSED:
+			mY_pos -= 1 * mVelocity;
+			break;
+
+		case KEY_DOWN_PRESSED:
+			mY_pos += 1 * mVelocity;
+			break;
+
+		default:
+			break;
+	}
+
+	if (ev2 == KEY_SPACE_PRESSED)
+		fireBullet();
+
+	// Update the box we live in based on the boundary set
+	if (mY_pos > mTopBoundary
+			&& mY_pos < mBottomBoundary)
+	{
+		mShape.y = mY_pos;
+	}
+	else
+	{
+		mY_pos = tempY;
+	}
+
+	// Call update on the bullet
+	for (int i = 0; i < NUMBER_BULLETS; ++i)
+		mBullets[i].get()->update();
+}
+
+void Ship::draw()
+{
+	// Just draw the surface at the current co-ordinates
+	SDL_RenderCopy(mRenderer, mTex, NULL, &mShape);
+	for (int i = 0; i < NUMBER_BULLETS; ++i)
+		mBullets[i].get()->draw();
+}

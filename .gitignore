@@ -4,4 +4,4 @@ resources/myConv.sh
 .DS_Store
 bin/*
 build/*
-
+rocket-shooter-android/obj/**
