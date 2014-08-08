@@ -1,4 +1,5 @@
 libs/
+!rocket-shooter-android/libs/
 resources/conv.sh
 resources/myConv.sh
 .DS_Store
