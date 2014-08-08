@@ -1,0 +1,10 @@
+The game actually compiles and runs on my galaxy S5 running kitkat. There are a few initial problems that need to be addressed:
+
+1) The game tries to map to the VGA resolution. Specifying 0,0 in SDL_CreateWindow for the size should tell SDL to compute this on the fly
+
+2) Obviously input is broken. Will need to modify the input handler to deal with touch events.
+3) I might look at making a soft joypad with icons on the screen to overlay the game. This will help the user to know where to touchthe screen in order to play the game. (as well as allow the ps3 controller to work through bluetooth with touch emulation ;-))
+
+4) Will need to handle android lifecycle too. At the moment, when the home button is pressed (so the app enters the background),  the music is still playing and presumably the game loop is still running too.
+
+5) Might need to fix up the sprite size declarations in RSConstants.hpp
