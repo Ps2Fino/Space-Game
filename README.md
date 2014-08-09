@@ -25,7 +25,7 @@ I've placed local symlinks to the projects source files (better than duplicating
 2. Create a symlink for each of the SDL distros inside rocket-shooter-android/jni/ and then note the following:
 	1. SDL 2.0.3 should compile fine by itself.
 	2. For SDL_image you need to disable jpeg and wbep loading inside the SDL_imageXXX/Android.mk file
-	3. For SDL_ttf you need to download the freetype library and unpack it to the root of the SDL_imageXXX directory.
+	3. For SDL_ttf you need to download the freetype library (http://sourceforge.net/projects/freetype/files/) and unpack it to the root of the SDL_imageXXX directory.
 	4. For SDL_mixer you need to disable the mikmod, modplug and mp3 smpeg plugins. I stuck with OGG
 
 After doing all this, cd into the rocket-shooeter-android directory and run ndk-build (you have it installed right?).
