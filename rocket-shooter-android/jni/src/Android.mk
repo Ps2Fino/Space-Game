@@ -4,6 +4,7 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := main
 
+# Set these to the names of the folders you symlinked for the SDL
 SDL_PATH := ../SDL2-2.0.3
 SDL_TTF_PATH = ../SDL_ttf-2.0.12
 SDL_MIXER_PATH = ../SDL_mixer-2.0.0
