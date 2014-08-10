@@ -21,7 +21,7 @@ The latest version of the repo contains an android source project for building t
 
 I've placed local symlinks to the projects source files (better than duplicating files). What you have to do yourself is the following:
 
-1. Download the source distributions of the dependencies listed above
+1. Download the source distributions of the dependencies listed above (note boost is included!)
 2. Create a symlink for each of the SDL distros inside rocket-shooter-android/jni/ and then note the following:
 	1. SDL 2.0.3 should compile fine by itself.
 	2. For SDL_image you need to disable jpeg and wbep loading inside the SDL_imageXXX/Android.mk file
