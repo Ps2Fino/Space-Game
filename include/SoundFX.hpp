@@ -19,6 +19,8 @@ public:
 	static int loadLaserSound();
 	static int loadMusic();
 	static int startMusic();
+	static void pauseMusic();
+	static void resumeMusic();
 	static void stopMusic();
 	static void playLaserSound();
 	static void shutDownMixerLibrary();

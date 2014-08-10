@@ -68,14 +68,17 @@ int SoundFX::loadMusic()
 
 int SoundFX::startMusic()
 {
+	SDL_Log("SoundFX::startMusic was called");
 	if (Mix_PlayingMusic() == 0)
 	{
 		if (Mix_PlayMusic(bgMusic, -1) == -1)
 		{
+			SDL_Log("The music was started");
 			return 1;
 		}
 		else
 		{
+			SDL_Log("Couldn't start playing the music");
 			return 0;
 		}
 	}
@@ -85,7 +88,44 @@ int SoundFX::startMusic()
 
 void SoundFX::stopMusic()
 {
+	SDL_Log("SoundFX::stopMusic was called");
 	Mix_HaltMusic();
+}
+
+void SoundFX::pauseMusic()
+{
+#ifndef ANDROID_BUILD
+	SDL_Log("SoundFX::pauseMusic was called");
+	if (Mix_PlayingMusic() == 0)
+	{
+		Mix_Pause(-1); // Pause all playback channels
+		SDL_Log("Music is paused");
+	}
+	else
+	{
+		SDL_Log("Mix_PlayingMusic() != 0 in the pauseMusic call");
+	}
+#else
+	Mix_HaltMusic();
+#endif
+}
+
+void SoundFX::resumeMusic()
+{
+#ifndef ANDROID_BUILD
+	SDL_Log("SoundFX::resumeMusic was called");
+	if (Mix_PlayingMusic() == 0)
+	{
+		Mix_Resume(-1); // Resume all the channels
+		SDL_Log("Music is resumed");
+	}
+	else
+	{
+		SDL_Log("Mix_PlayingMusic() != 0 in the resumeMusic call");
+	}
+#else
+	Mix_PlayMusic(bgMusic, -1);
+#endif
 }
 
 void SoundFX::playLaserSound()

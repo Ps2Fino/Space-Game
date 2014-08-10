@@ -54,6 +54,15 @@ void drawEntities(SDL_Renderer *renderer, Ship *player,
 void activateAsteroid();
 int loadLevel(int argc, char **argv);
 
+#ifdef ANDROID_BUILD
+#ifdef __cplusplus
+	extern "C"
+	{
+		int handleAndroidLifeCycleEvent(void *userData, SDL_Event *event);
+	}
+#endif
+#endif
+
 ///////////////////////////////////////////
 //// Global variables for the game ////////
 ///////////////////////////////////////////
@@ -80,6 +89,10 @@ StatsPtr scoreTable;
 MenuScreenPtr menuScreen;
 
 bool running; // The main program loop variable
+#ifdef ANDROID_BUILD
+	bool centerTouched = false; // Detect whether or not the screen was touched
+#endif
+
 GAME_STATE state = MENU; // The state of the game
 
 #ifdef USE_CPP_RANDOM
@@ -98,17 +111,19 @@ GAME_STATE state = MENU; // The state of the game
   * thread for the game loop. For this small game, it is OK
   * but try not to do this in your own projects
   */
-#ifdef PSP_BUILD
-  	extern "C" int main (int argc, char **argv)
-#else
-	int main (int argc, char **argv)
-#endif
+int main (int argc, char **argv)
 {
 #ifndef USE_CPP_RANDOM
 	srand(time(NULL)); // Set the seed
 	int randomNum = rand() % ASTEROID_INTERVAL_RANGE_MIN + (ASTEROID_INTERVAL_RANGE_MAX + 1);
 	ASTEROID_INTERVAL = randomNum;
 #endif
+
+#ifdef ANDROID_BUILD
+	SDL_SetEventFilter(handleAndroidLifeCycleEvent, NULL);
+#endif
+
+
 	// Get the level we want to play as
 	int level = PLAY_LEVEL;
 	level = loadLevel(argc, argv);
@@ -131,6 +146,8 @@ GAME_STATE state = MENU; // The state of the game
 	if (status != 0)
 		return 1;
 
+	// The android life cycle will handle the calls to stop and
+	// start the bg music
 	SoundFX::startMusic();
 
 	// Create the background and the ship
@@ -253,7 +270,11 @@ GAME_STATE state = MENU; // The state of the game
 
 void doMenuCase(int &event, unsigned int &lastAsteroidTime)
 {
+#ifndef ANDROID_BUILD
 	if (event == KEY_P_PRESSED)
+#else
+	if (centerTouched)
+#endif
 	{
 		// Reset the positions of the asteroids
 		for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
@@ -339,7 +360,11 @@ void doGameCase(int &event, int &fireEvent, unsigned int &lastAsteroidTime)
 
 void doGameOverCase(int &event, unsigned int &lastAsteroidTime)
 {
+#ifndef ANDROID_BUILD
 	if (event == KEY_P_PRESSED)
+#else
+	if (centerTouched) // if (centerTouched = true) is a fun bug. See if you can figure out the logic :-)
+#endif
 	{
 		// Reset the positions of the asteroids
 		for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
@@ -421,8 +446,14 @@ int initSDL(SDL_Window **window, SDL_Renderer **renderer, TTF_Font **font)
 		std::cout << "TTF_Init Error: " << TTF_GetError() << std::endl;
 	}
 
+#ifndef ANDROID_BUILD
 	// Create the window that will hold our game
-	tempWin = SDL_CreateWindow("Rocket Shooter!", 100, 100, GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
+	tempWin = SDL_CreateWindow("Rocket Shooter!", 100, 100,
+									GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT, 0); // SDL_WINDOW_SHOWN is ignored
+#else
+	tempWin = SDL_CreateWindow(NULL, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+									0, 0, SDL_WINDOW_FULLSCREEN_DESKTOP);
+#endif
 	if (tempWin == nullptr)
 	{
 		std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
@@ -441,6 +472,10 @@ int initSDL(SDL_Window **window, SDL_Renderer **renderer, TTF_Font **font)
 		SDL_Quit();
 		return 1;
 	}
+
+#ifdef ANDROID_BUILD
+	SDL_RenderSetLogicalSize(tempRen, 640, 480);
+#endif
 
 	// Load  the font
 	std::string fontPath = getResourcePath() + "fonts/tiptoe.ttf";
@@ -552,71 +587,210 @@ void drawEntities(SDL_Renderer *renderer, Ship *player,
   * 4 buttons as input: Up, down, space bar and escape
   * This function checks which one was pressed and acts accordingly
   */
-void handleInput(int &gameEvent, int &fireEvent)
-{
-	SDL_Event event;
-	while (SDL_PollEvent(&event))
+#ifndef ANDROID_BUILD
+	void handleInput(int &gameEvent, int &fireEvent)
 	{
-		switch(event.type)
+		SDL_Event event;
+		while (SDL_PollEvent(&event))
 		{
-			case SDL_KEYDOWN:
-				switch (event.key.keysym.sym)
-				{
-					case SDLK_UP:
-						gameEvent = KEY_UP_PRESSED;
-						break;
+			switch(event.type)
+			{
+				case SDL_KEYDOWN:
+					switch (event.key.keysym.sym)
+					{
+						case SDLK_UP:
+							gameEvent = KEY_UP_PRESSED;
+							break;
 
-					case SDLK_DOWN:
-						gameEvent = KEY_DOWN_PRESSED;
-						break;
+						case SDLK_DOWN:
+							gameEvent = KEY_DOWN_PRESSED;
+							break;
 
-					case SDLK_ESCAPE:
-						gameEvent = KEY_ESCAPE_PRESSED;
-						break;
+						case SDLK_ESCAPE:
+							gameEvent = KEY_ESCAPE_PRESSED;
+							break;
 
-					case SDLK_SPACE:
-						fireEvent = KEY_SPACE_PRESSED;
-						break;
+						case SDLK_SPACE:
+							fireEvent = KEY_SPACE_PRESSED;
+							break;
 
-					case SDLK_p:
-						gameEvent = KEY_P_PRESSED;
-						break;
+						case SDLK_p:
+							gameEvent = KEY_P_PRESSED;
+							break;
 
-					default:
-						break;
-				}
-				break;
+						default:
+							break;
+					}
+					break;
 
-			case SDL_KEYUP:
-				switch (event.key.keysym.sym)
-				{
-					case SDLK_UP:
-						gameEvent = KEY_RELEASED;
-						break;
+				case SDL_KEYUP:
+					switch (event.key.keysym.sym)
+					{
+						case SDLK_UP:
+							gameEvent = KEY_RELEASED;
+							break;
 
-					case SDLK_DOWN:
-						gameEvent = KEY_RELEASED;
-						break;
+						case SDLK_DOWN:
+							gameEvent = KEY_RELEASED;
+							break;
 
-					case SDLK_ESCAPE:
-						gameEvent = KEY_RELEASED;
-						break;
+						case SDLK_ESCAPE:
+							gameEvent = KEY_RELEASED;
+							break;
 
-					case SDLK_SPACE:
-						fireEvent = KEY_RELEASED;
-						break;
+						case SDLK_SPACE:
+							fireEvent = KEY_RELEASED;
+							break;
 
-					default:
-						break;
-				}
-				break;
+						default:
+							break;
+					}
+					break;
 
-			case SDL_QUIT:
-				gameEvent = GAME_QUIT;
-				break;
+				case SDL_QUIT:
+					gameEvent = GAME_QUIT;
+					break;
 
-			default:
-				break;
+				default:
+					break;
+			}
 		}
 	}
-}
+#else
+	void handleInput(int &gameEvent, int &fireEvent)
+	{
+		SDL_Event event;
+		while (SDL_PollEvent(&event))
+		{
+//			SDL_Log("The finger index ID: %d", event.tfinger.fingerId);
+			switch(event.type)
+			{
+				case SDL_FINGERDOWN:
+					// If we touched the location of one of the soft buttons,
+					// then trigger the movement for the ship
+					if (event.tfinger.y < 0.5
+							&& event.tfinger.x <= 0.3)
+					{
+						gameEvent = KEY_UP_PRESSED;
+					}
+
+					if (event.tfinger.y >= 0.5
+								&& event.tfinger.x <= 0.3)
+					{
+						gameEvent = KEY_DOWN_PRESSED;
+					}
+
+					if (event.tfinger.y >= 0.7
+								&& event.tfinger.x >= 0.7)
+					{
+						fireEvent = KEY_SPACE_PRESSED;
+					}
+
+					// Touching the center of the screen will activate the menu transitions
+					if (event.tfinger.y >= 0.4
+							&& event.tfinger.y < 0.6
+							&& event.tfinger.x >= 0.4
+							&& event.tfinger.x < 0.6)
+					{
+						centerTouched = true;
+					}
+
+					break;
+
+				case SDL_FINGERUP:
+					if (event.tfinger.y < 0.5
+							&& event.tfinger.x <= 0.3)
+					{
+						gameEvent = KEY_RELEASED;
+					}
+
+					if (event.tfinger.y >= 0.5
+								&& event.tfinger.x <= 0.3)
+					{
+						gameEvent = KEY_RELEASED;
+					}
+
+					if (event.tfinger.y >= 0.7
+								&& event.tfinger.x >= 0.7)
+					{
+						fireEvent = KEY_RELEASED;
+					}
+
+					centerTouched = false;
+					break;
+
+				case SDL_QUIT:
+					gameEvent = GAME_QUIT;
+					break;
+
+				default:
+					break;
+			}
+		}
+	}
+#endif
+
+/**
+ * The following functions
+ * are only used in the android build
+ * of the game
+ */
+#ifdef ANDROID_BUILD
+
+#ifdef __cplusplus
+	extern "C"
+	{
+		int handleAndroidLifeCycleEvent(void *userData, SDL_Event *event)
+		{
+			SDL_Log("Handling the life cycle event");
+			switch(event->type)
+			{
+				case SDL_APP_WILLENTERFOREGROUND:
+					SDL_Log("Entering foreground in lifecycle");
+//					SoundFX::startMusic();
+					SoundFX::resumeMusic(); // Pausing and resuming doesn't work on my Samsung Galaxy S5 for some reason
+					break;
+
+				case SDL_APP_WILLENTERBACKGROUND:
+					SDL_Log("Entering background in lifecycle");
+//					SoundFX::stopMusic();
+					SoundFX::pauseMusic();
+					break;
+
+				case SDL_APP_TERMINATING:
+					SDL_Log("Terminating in lifecycle");
+					SoundFX::stopMusic();
+					running = false;
+					break;
+
+				default:
+					break;
+			}
+
+			return 1;
+		}
+
+		// Declare some JNI functions
+		#include <jni.h>
+
+		JNIEXPORT void JNICALL Java_org_dandan_rocket_MyActivity_pauseMusic(JNIEnv*, jobject);
+		JNIEXPORT void JNICALL Java_org_dandan_rocket_MyActivity_resumeMusic(JNIEnv*, jobject);
+		JNIEXPORT void JNICALL Java_org_dandan_rocket_MyActivity_stopMusic(JNIEnv*, jobject);
+
+		JNIEXPORT void JNICALL Java_org_dandan_rocket_MyActivity_stopMusic(JNIEnv *env, jobject obj)
+		{
+			SoundFX::stopMusic();
+		}
+
+		JNIEXPORT void JNICALL Java_org_dandan_rocket_MyActivity_pauseMusic(JNIEnv *env, jobject obj)
+		{
+			SoundFX::pauseMusic();
+		}
+
+		JNIEXPORT void JNICALL Java_org_dandan_rocket_MyActivity_resumeMusic(JNIEnv *env, jobject obj)
+		{
+			SoundFX::resumeMusic();
+		}
+	}
+#endif
+#endif

@@ -1,7 +1,12 @@
 #ifndef RS_CONSTANTS
 #define RS_CONSTANTS
 
-// #define USE_CPP_RANDOM // uncomment this to use the experimental 64 bit <random> library
+#include <string>
+#include <cstddef>
+
+// #define USE_CPP_RANDOM // Use this as a compile time flag to use the experimental 64 bit <random> library
+// #define LOGGING_FPS YES // Use this as a compile time flag log the fps during the game loop
+// #define ANDROID_BUILD YES // Use this as a compile time flag to build for android
 
 // The events that the input handler will check for
 enum GAME_EVENT {
@@ -37,8 +42,6 @@ enum GAME_STATE {
 ///////////////////////////////////////////
 //// Misc definitions and constants ///////
 ///////////////////////////////////////////
-
-// #define LOGGING_FPS YES // Uncomment this to log the fps during the game loop
 
 // The default level background to play in
 #define PLAY_LEVEL 3
@@ -76,7 +79,11 @@ const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 //// Menu Screen //////////////////////////
 ///////////////////////////////////////////
 
-#define MENU_SCREEN_TEXT "Press p to Play"
+#ifndef ANDROID_BUILD
+	#define MENU_SCREEN_TEXT "Press p to play"
+#else
+	#define MENU_SCREEN_TEXT "Touch to play"
+#endif
 #define MENU_SCREEN_TEXT_LOCATION_X ((GAME_WINDOW_WIDTH / 2) - 150)
 #define MENU_SCREEN_TEXT_LOCATION_Y ((GAME_WINDOW_HEIGHT / 2) - 25)
 #define MENU_SCREEN_TEXT_WIDTH 300

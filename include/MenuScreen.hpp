@@ -5,6 +5,7 @@
 #include <SDL_image.h>
 #include <SDL_ttf.h>
 
+#include "RSConstants.hpp"
 #include "boost/shared_ptr.hpp"
 
 /**
