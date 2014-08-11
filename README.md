@@ -32,7 +32,7 @@ After doing all this, cd into the rocket-shooter-android directory and run ndk-b
 The ndk will then build the entire application, including the SDL dependencies and will create a nice apk inside rocket-shooter-android/bin.
 Use adb or Eclipse or human-machine telepathy to install to your device. I don't think the app will run on an emulator but you can knock yourself out.
 
-If there is a request for a bin I will build one but for now I have the app running on my phone and thats all I care about really. I'll wait and see if I get any pull or build requests. I'm not holding my breath but then again you never know... ;-)
+If all that sounds like too much hard work, there is a signed binary in the rocket-shooter-android/bin directory. Just dump that to your device and you should be able to install it
 
 Cheers
 
