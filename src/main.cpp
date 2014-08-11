@@ -91,6 +91,7 @@ MenuScreenPtr menuScreen;
 bool running; // The main program loop variable
 #ifdef ANDROID_BUILD
 	bool centerTouched = false; // Detect whether or not the screen was touched
+	bool isPaused = false;
 #endif
 
 GAME_STATE state = MENU; // The state of the game

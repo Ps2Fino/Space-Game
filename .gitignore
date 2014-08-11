@@ -1,3 +1,4 @@
+rocket-shooter-android/obj/*
 libs/
 !psp/libs/
 resources/conv.sh
