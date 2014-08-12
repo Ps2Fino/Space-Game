@@ -148,7 +148,8 @@ int main (int argc, char **argv)
 		return 1;
 
 	// The android life cycle will handle the calls to stop and
-	// start the bg music
+	// start the bg music when the application has initialialized but I
+	// explicitly start it here
 	SoundFX::startMusic();
 
 	// Create the background and the ship
@@ -198,6 +199,13 @@ int main (int argc, char **argv)
 	  */
 	while (running)
 	{
+#ifdef ANDROID_BUILD
+		if (isPaused)
+		{
+			SDL_Delay(300);
+			continue;
+		}
+#endif
 		Uint32 frameStartTime = SDL_GetTicks();
 
 		handleInput(gameEvent, fireEvent);
@@ -210,7 +218,6 @@ int main (int argc, char **argv)
 			continue; // Short circuit the rest of the function
 		}
 
-		// Switch on the game state
 		switch (state)
 		{
 			case MENU:
@@ -748,19 +755,20 @@ void drawEntities(SDL_Renderer *renderer, Ship *player,
 			{
 				case SDL_APP_WILLENTERFOREGROUND:
 					SDL_Log("Entering foreground in lifecycle");
-//					SoundFX::startMusic();
-					SoundFX::resumeMusic(); // Pausing and resuming doesn't work on my Samsung Galaxy S5 for some reason
+					SoundFX::startMusic();
+					isPaused = false; // Unpause the game
 					break;
 
 				case SDL_APP_WILLENTERBACKGROUND:
 					SDL_Log("Entering background in lifecycle");
-//					SoundFX::stopMusic();
-					SoundFX::pauseMusic();
+					SoundFX::stopMusic();
+					isPaused = true;
 					break;
 
 				case SDL_APP_TERMINATING:
 					SDL_Log("Terminating in lifecycle");
 					SoundFX::stopMusic();
+					isPaused = true;
 					running = false;
 					break;
 
