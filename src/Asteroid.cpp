@@ -11,22 +11,21 @@ SDL_Texture* Asteroid::asteroidTexture = NULL;
 	#include <cstdlib> // For generating random numbers
 #endif
 
-Asteroid::Asteroid(SDL_Renderer *renderer)
-				: Destructible(renderer, ASTEROID_WIDTH, ASTEROID_HEIGHT, -ASTEROID_WIDTH, 0)
+Asteroid::Asteroid(SDL_Renderer *renderer, int velocity)
+				: Destructible(renderer, ASTEROID_WIDTH, ASTEROID_HEIGHT, -ASTEROID_WIDTH, 0),
+				mVelocity = velocity
 {
 	// We've 8 to choose from
 	mTextureRegion.x = 64 * 3; // Lets pick the 3rd row across on the sprite sheet
 	mTextureRegion.y = 64 * 5; // Lets pick the 5th column down on the sprite sheet
 	mTextureRegion.w = ASTEROID_WIDTH;
 	mTextureRegion.h = ASTEROID_HEIGHT;
-
-	mVelocity = ASTEROID_VELOCITY;
 	mIsActive = true;
 }
 
 Asteroid::~Asteroid()
 {
-} // No need to do anything. The program (probaly main somewhere) should delete anything important
+} // No need to do anything. The program (probably main somewhere) should delete anything important
 
 void Asteroid::activate(int xPos, int yPos)
 {
