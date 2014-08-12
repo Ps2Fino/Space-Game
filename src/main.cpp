@@ -171,16 +171,16 @@ int main (int argc, char **argv)
 	// Create the score table
 	scoreTable = StatsPtr(new Stats(renderer, font));
 
-	// Create the enemy array
-	std::string asteroidImagePath = getResourcePath() + "img/asteroid.png";
-	SDL_Texture *asteroidTexture = IMG_LoadTexture(renderer, asteroidImagePath.c_str());
-	Asteroid::asteroidTexture = asteroidTexture; // Set the asteroid texture
-
-	for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
-	{
-		asteroids.push_back(AsteroidPtr(new Asteroid(renderer)));
-		asteroids.back().get()->setStats(scoreTable.get()); // Add the stats table to the asteroid
-	}
+//	// Create the enemy array
+//	std::string asteroidImagePath = getResourcePath() + "img/asteroid.png";
+//	SDL_Texture *asteroidTexture = IMG_LoadTexture(renderer, asteroidImagePath.c_str());
+//	Asteroid::asteroidTexture = asteroidTexture; // Set the asteroid texture
+//
+//	for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
+//	{
+//		asteroids.push_back(AsteroidPtr(new Asteroid(renderer)));
+//		asteroids.back().get()->setStats(scoreTable.get()); // Add the stats table to the asteroid
+//	}
 
 #ifdef LOGGING_FPS
 	int countedFrames = 0;
@@ -296,18 +296,19 @@ void doMenuCase(int &event, unsigned int &lastAsteroidTime)
 		return; // Move to the game state
 	}
 
-	// Fire an asteroid if enough time has passed
-	if (lastAsteroidTime + ASTEROID_INTERVAL <= SDL_GetTicks())
-	{
-#ifdef USE_CPP_RANDOM
-		ASTEROID_INTERVAL = distr(eng);
-#else
-		int randomNum = rand() % ASTEROID_INTERVAL_RANGE_MIN + (ASTEROID_INTERVAL_RANGE_MAX + 1);
-		ASTEROID_INTERVAL = randomNum;
-#endif
-		lastAsteroidTime = SDL_GetTicks();
-		activateAsteroid();
-	}
+	// We'll come back to this effect some day
+//	// Fire an asteroid if enough time has passed
+//	if (lastAsteroidTime + ASTEROID_INTERVAL <= SDL_GetTicks())
+//	{
+//#ifdef USE_CPP_RANDOM
+//		ASTEROID_INTERVAL = distr(eng);
+//#else
+//		int randomNum = rand() % ASTEROID_INTERVAL_RANGE_MIN + (ASTEROID_INTERVAL_RANGE_MAX + 1);
+//		ASTEROID_INTERVAL = randomNum;
+//#endif
+//		lastAsteroidTime = SDL_GetTicks();
+//		activateAsteroid();
+//	}
 
 	// In the menu case, we just display the asteroids moving across the screen
 	// and display the "press space to play button"
@@ -425,18 +426,18 @@ int loadLevel(int argc, char **argv)
 	return level;
 }
 
-void activateAsteroid()
-{
-	for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
-	{
-		Asteroid *currAsteroid = asteroids[i].get();
-		if (!currAsteroid->checkIsActivated())
-		{
-			currAsteroid->activate();
-			break;
-		}
-	}
-}
+//void activateAsteroid()
+//{
+//	for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
+//	{
+//		Asteroid *currAsteroid = asteroids[i].get();
+//		if (!currAsteroid->checkIsActivated())
+//		{
+//			currAsteroid->activate();
+//			break;
+//		}
+//	}
+//}
 
 int initSDL(SDL_Window **window, SDL_Renderer **renderer, TTF_Font **font)
 {
@@ -510,11 +511,11 @@ int initSDL(SDL_Window **window, SDL_Renderer **renderer, TTF_Font **font)
 	return 0;
 }
 
-void updateEnemies(std::vector<AsteroidPtr> &asteroids)
-{
-	for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
-		asteroids[i].get()->update();
-}
+//void updateEnemies(std::vector<AsteroidPtr> &asteroids)
+//{
+//	for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
+//		asteroids[i].get()->update();
+//}
 
 void handleCollisions(Ship *player, std::vector<AsteroidPtr> &asteroids, Stats *scoreTable)
 {
