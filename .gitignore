@@ -1,3 +1,4 @@
+rocket-shooter-android/jni/SDL*
 rocket-shooter-android/obj/*
 libs/
 !psp/libs/
