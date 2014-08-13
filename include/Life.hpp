@@ -22,6 +22,7 @@ public:
 	void update(int ev1 = 0, int ev2 = 0);
 	void reset();
 	void draw();
+	int getValue() { return mValue; }
 
 	// All lives look the same in the game (this can change in future iterations)
 	static SDL_Texture *lifeTexture;
@@ -29,6 +30,8 @@ public:
 private:
 	int mValue;
 };
+
+typedef boost::shared_ptr<Life> LifePtr;
 
 #endif
 

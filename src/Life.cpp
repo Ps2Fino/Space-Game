@@ -1,6 +1,8 @@
 #include "Life.hpp"
 #include "RSConstants.hpp"
 
+SDL_Texture* Life::lifeTexture = NULL;
+
 Life::Life(SDL_Renderer *renderer, int width, int height, int x, int y)
 	: Destructible(renderer, LIFE_WIDTH, LIFE_HEIGHT, 0, 0)
 {
@@ -28,7 +30,10 @@ void Life::activate(int x, int y)
 	}
 
 	// Now pick the spawn location
-	mX_pos = rand() % (GAME_WINDOW_WIDTH - LIFE_WIDTH);
+	mX_pos = rand() % (GAME_WINDOW_WIDTH - LIFE_WIDTH + SHIP_WIDTH);
+
+	// Set the position
+	setPosition(mX_pos, mY_pos);
 
 	// And we're off!!!
 	mIsActive = true;
@@ -39,6 +44,7 @@ void Life::update(int ev1, int ev2)
 	if (mIsActive)
 	{
 		mY_pos += mVelocity;
+		mShape.y = mY_pos;
 		if (mY_pos + LIFE_HEIGHT <= 0)
 			deactivate();
 	}
@@ -49,6 +55,8 @@ void Life::reset()
 	mVelocity = 0;
 	mY_pos = -1 * LIFE_WIDTH;
 	mX_pos = 0;
+	// Give it a random value
+	mValue = rand() % 5 + 1;
 	mIsActive = false;
 }
 

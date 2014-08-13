@@ -28,6 +28,7 @@ LOCAL_SRC_FILES := $(SDL_PATH)/src/main/android/SDL_android_main.c \
 	Sprite.cpp \
 	Stats.cpp \
 	AsteroidManager.cpp \
+	Life.cpp
 
 LOCAL_SHARED_LIBRARIES := SDL2 SDL2_ttf SDL2_mixer SDL2_image
 

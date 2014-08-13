@@ -26,6 +26,7 @@
 #include "SoundFX.hpp"
 #include "MenuScreen.hpp"
 #include "AsteroidManager.hpp"
+#include "LifeManager.hpp"
 
 ///////////////////////////////////////////
 //// Core functions for the state machine /
@@ -43,12 +44,13 @@ int initSDL(SDL_Window **window, SDL_Renderer **renderer, TTF_Font **font);
 
 void handleInput(int &playerEvent, int &fireEvent);
 
+// Simple collision checker for everything
 void handleCollisions(Ship *player, AsteroidManager *asteroidManager,
-						Stats *scoreTable); // Simple collision checker for everything
+							LifeManager *lifeManager, Stats *scoreTable);
 
 void drawEntities(SDL_Renderer *renderer, Ship *player, 
 					Background *bg, AsteroidManager *asteroidManager,
-					Stats *scoreTable, MenuScreen *menuScreen);
+					LifeManager *lifeManager, Stats *scoreTable, MenuScreen *menuScreen);
 
 int loadLevel(int argc, char **argv);
 
@@ -85,6 +87,7 @@ BackgroundPtr background;
 StatsPtr scoreTable;
 MenuScreenPtr menuScreen;
 AsteroidManagerPtr asteroidManager;
+LifeManagerPtr lifeManager;
 
 bool running; // The main program loop variable
 #ifdef ANDROID_BUILD
@@ -171,6 +174,9 @@ int main (int argc, char **argv)
 
 	// Create the asteroid manager
 	asteroidManager = AsteroidManagerPtr(new AsteroidManager(renderer, scoreTable.get()));
+
+	// Create the life manager
+	lifeManager = LifeManagerPtr(new LifeManager(renderer, scoreTable.get()));
 
 #ifdef LOGGING_FPS
 	int countedFrames = 0;
@@ -300,7 +306,7 @@ void doMenuCase(int &event, unsigned int &lastAsteroidTime)
 	// In the menu case, we just display the asteroids moving across the screen
 	// and display the "press space to play button"
 	asteroidManager.get()->update();
-	drawEntities(renderer, NULL, background.get(), asteroidManager.get(), NULL, menuScreen.get());
+	drawEntities(renderer, NULL, background.get(), asteroidManager.get(), NULL, NULL, menuScreen.get());
 }
 
 void doGameCase(int &event, int &fireEvent, unsigned int &lastAsteroidTime)
@@ -319,6 +325,9 @@ void doGameCase(int &event, int &fireEvent, unsigned int &lastAsteroidTime)
 			gameOverText = "You lost";
 		menuScreen.get()->setText(gameOverText);
 
+		// Turn off the life if its showing
+		lifeManager.get()->deactivate();
+
 		// Move to the game over state
 		state = GAME_OVER;
 
@@ -332,12 +341,14 @@ void doGameCase(int &event, int &fireEvent, unsigned int &lastAsteroidTime)
 	// Update the player ship and the asteroid belt
 	ship.get()->update(event, fireEvent);
 	asteroidManager.get()->update();
+	lifeManager.get()->update();
 
 	// Check collisions here
-	handleCollisions(ship.get(), asteroidManager.get(), scoreTable.get());
+	handleCollisions(ship.get(), asteroidManager.get(), lifeManager.get(), scoreTable.get());
 
 	// Draw stuff
-	drawEntities(renderer, ship.get(), background.get(), asteroidManager.get(), scoreTable.get(), NULL);
+	drawEntities(renderer, ship.get(), background.get(),
+					asteroidManager.get(), lifeManager.get(), scoreTable.get(), NULL);
 }
 
 void doGameOverCase(int &event, unsigned int &lastAsteroidTime)
@@ -381,7 +392,7 @@ void doGameOverCase(int &event, unsigned int &lastAsteroidTime)
 	ship.get()->update(NONE, NONE);
 	asteroidManager.get()->update();
 	drawEntities(renderer, ship.get(), background.get(),
-				 asteroidManager.get(), scoreTable.get(),
+				 asteroidManager.get(), NULL, scoreTable.get(),
 				 menuScreen.get());
 }
 
@@ -472,7 +483,8 @@ int initSDL(SDL_Window **window, SDL_Renderer **renderer, TTF_Font **font)
 	return 0;
 }
 
-void handleCollisions(Ship *player, AsteroidManager *asteroidManager, Stats *scoreTable)
+void handleCollisions(Ship *player, AsteroidManager *asteroidManager,
+						LifeManager *lifeManager, Stats *scoreTable)
 {
 	std::vector<AsteroidPtr> asteroids = asteroidManager->getAsteroids();
 
@@ -493,6 +505,7 @@ void handleCollisions(Ship *player, AsteroidManager *asteroidManager, Stats *sco
 
 			SDL_Rect bulletRect = currBullet.get()->getSize();
 
+			// Check for collision with an asteroid
 			if (asteroidRect.x >= bulletRect.x
 					&& asteroidRect.x <= bulletRect.x + BULLET_COLLISION_WIDTH)
 			{
@@ -509,11 +522,37 @@ void handleCollisions(Ship *player, AsteroidManager *asteroidManager, Stats *sco
 			}
 		}
 	}
+
+	// Loop over all the bullets and check for collisions against the life
+	SDL_Rect lifeRect = lifeManager->getLife()->getSize();
+
+	for (std::vector<BulletPtr>::iterator bulletIt = bullets.begin(); bulletIt != bullets.end(); ++bulletIt)
+	{
+		BulletPtr currBullet = *bulletIt;
+		if (!currBullet.get()->checkIsActivated())
+			continue;
+
+		SDL_Rect bulletRect = currBullet.get()->getSize();
+
+		// Check for a collision with the life
+		// Check for collision with an asteroid
+		if (lifeRect.x >= bulletRect.x
+				&& lifeRect.x <= bulletRect.x + BULLET_COLLISION_WIDTH)
+		{
+			if (lifeRect.y >= bulletRect.y - ASTEROID_OFFSET
+					&& lifeRect.y <= bulletRect.y + BULLET_COLLISION_HEIGHT)
+			{
+				// Record the life as defeated
+				lifeManager->deactivateLife();
+				break;
+			}
+		}
+	}
 }
 
 void drawEntities(SDL_Renderer *renderer, Ship *player, 
 					Background *bg, AsteroidManager *asteroidManager,
-					Stats *scoreTable, MenuScreen *menuScreen)
+					LifeManager *lifeManager, Stats *scoreTable, MenuScreen *menuScreen)
 {
 	// Now draw the frame
 	SDL_RenderClear(renderer);
@@ -536,6 +575,11 @@ void drawEntities(SDL_Renderer *renderer, Ship *player,
 	if (scoreTable != nullptr)
 	{
 		scoreTable->draw();
+	}
+
+	if (lifeManager != nullptr)
+	{
+		lifeManager->drawLife();
 	}
 
 	if (menuScreen != nullptr)
