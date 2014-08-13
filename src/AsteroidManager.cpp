@@ -1,82 +1,135 @@
 #include "AsteroidManager.hpp"
+#include "Utils.hpp"
 
-GameManager::GameManager(SDL_Renderer *renderer, Stats *stats) 
-	: mAsteroidSpawnInterval(20), mWavesDefeated(0)
+#define ABS_MIN_INTERVAL 300
+#define ABS_MAX_VELOCITY 8
+
+AsteroidManager::AsteroidManager(SDL_Renderer *renderer, Stats *stats)
+	: mAsteroidSpawnInterval(20)
 {	
-	mStats = stats
-	mAsteroidMinInterval = ASTEROID_INTERVAL_RANGE_MIN;
-	mAsteroidMaxInterval = ASTEROID_INTERVAL_RANGE_MAX;
+	mAsteroidMinInterval = 300;
+	mAsteroidMaxInterval = 1000;
 	mAsteroidMinVelocityInterval = 1;
 	mAsteroidMaxVelocityInterval = 3; // This range will rise by 2 every wave
-	mNextAsteroidIntervalWaitTime = 0;
+	mNextAsteroidIntervalWaitTime = 500; // Half a second to begin with
+	mGameScore = stats;
+	mLastAsteroidTime = 0;
 	
 	init(renderer);
 }
 
-GameManager::~GameManager()
+AsteroidManager::~AsteroidManager()
 {
 	// Delete the asteroid texture
 	SDL_DestroyTexture(mAsteroidTexture);
 	mAsteroidTexture = NULL;
 } // Stats is none of my concern!
 
-void GameManager::init(SDL_Renderer *renderer)
+void AsteroidManager::init(SDL_Renderer *renderer)
 {	
 	// Create the list of asteroids
 	std::string asteroidImagePath = getResourcePath() + "img/asteroid.png";
 	mAsteroidTexture = IMG_LoadTexture(renderer, asteroidImagePath.c_str());
-	Asteroid::asteroidTexture = asteroidTexture; // Set the asteroid texture
+	Asteroid::asteroidTexture = mAsteroidTexture; // Set the asteroid texture
 	
 	// Create a set of at most X number of asteroids
 	for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
-	{
-		mAsteroids.push_back(AsteroidPtr(new Asteroid(renderer)));
-		mAsteroids.back().get()->setStats(mGameScore.get()); // Add the stats table to the asteroid
-	}
+		mAsteroids.push_back(AsteroidPtr(new Asteroid(renderer, this)));
 }
 
-void GameManager::update()
+void AsteroidManager::update()
 {
-	if (mGameScore->getScore() % 10)
+	int waveScore = mGameScore->getWaveScore();
+	if ((waveScore > 0)
+			&& (waveScore % 10 == 0))
 	{
-		mWavesDefeated++; // Defeated a wave. Record it
-		
-		SDL_Log("Defeated a wave! Current wave number is %d", mWavesDefeated + 1);
-		
-		mAsteroidMaxInterval = 1000 - (mAsteroidSpawnInterval * (mWavesDefeated + 1));
-		if (mWavesDefeated % 2)
+		mGameScore->defeatWave();
+		int numWavesDefeated = mGameScore->getNumWavesDefeated();
+
+//		SDL_Log("Number of waves defeated: %d\n", numWavesDefeated);
+
+		// Reduce the wait time unless we've hit rock bottom
+		mAsteroidMaxInterval =
+				(mAsteroidMaxInterval <= ABS_MIN_INTERVAL) ? mAsteroidMaxInterval = ABS_MIN_INTERVAL
+						: 500 - (mAsteroidSpawnInterval * (numWavesDefeated));
+
+		SDL_Log("Setting the mAsteroidMaxInterval to: %d\n", mAsteroidMaxInterval);
+
+		if (numWavesDefeated % 2)
 			mAsteroidMaxVelocityInterval++; // Raise the max velocity every two waves
-		else if (mWavesDefeated % 4)
-			mAsteroidMinVelocityInterval++; // Raise the min velocity every 4 waves
+//		else if (numWavesDefeated % 4)
+//			mAsteroidMinVelocityInterval++; // Raise the min velocity every 4 waves
 	}
 	
 	// Fire an asteroid if enough time has passed
-	if (lastAsteroidTime + mNextAsteroidIntervalWaitTime <= SDL_GetTicks())
+	if (mLastAsteroidTime + mNextAsteroidIntervalWaitTime <= SDL_GetTicks())
 	{
 		mNextAsteroidIntervalWaitTime = 
-				rand() % ASTEROID_INTERVAL_RANGE_MIN + (ASTEROID_INTERVAL_RANGE_MAX + 1);
-		lastAsteroidTime = SDL_GetTicks();
+				rand() % mAsteroidMinInterval + (mAsteroidMaxInterval + 1);
+
+//		SDL_Log("Will activate next asteroid in %d ms\n", mNextAsteroidIntervalWaitTime);
+
+		mLastAsteroidTime = SDL_GetTicks();
 		activateAsteroid();
 	}
 	
 	// Update my container (ie update the stats and the asteroids array
 	for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
-		asteroids[i].get()->update();
+		mAsteroids[i].get()->update();
 }
 
-void GameManager::activateAsteroid()
+void AsteroidManager::recordAsteroidMissed()
+{
+	mGameScore->loseLife();
+}
+
+void AsteroidManager::draw()
+{
+	for (int i=0; i < NUMBER_ASTEROIDS; ++i)
+		mAsteroids[i].get()->draw();
+}
+
+void AsteroidManager::activateAsteroid()
 {
 	for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
 	{
-		Asteroid *currAsteroid = asteroids[i].get();
+		Asteroid *currAsteroid = mAsteroids[i].get();
 		if (!currAsteroid->checkIsActivated())
 		{
+//			SDL_Log("Asteroid min vel: %d\tAsteroid max vel: %d\n", mAsteroidMinVelocityInterval,
+//						mAsteroidMaxVelocityInterval);
 			// Pick a random velocity to apply to the asteroid
-			int randomVelocity = 
-					rand() % mAsteroidMinVelocityInterval + (mAsteroidMaxVelocityInterval + 1);
-			currAsteroid.setVelocity(randomVelocity);
+			int velocity = 0;
+			if (mAsteroidMinVelocityInterval >= mAsteroidMaxVelocityInterval)
+			{
+				velocity = ABS_MAX_VELOCITY;
+			}
+			else
+			{
+				velocity =
+					rand() % mAsteroidMaxVelocityInterval + mAsteroidMinVelocityInterval;
+			}
+
+			currAsteroid->setVelocity(velocity);
+
+//			SDL_Log("Activating an asteroid with velocity: %d\n", velocity);
+
+			// Pick a random yPosition for the asteroid
 			currAsteroid->activate();
 			break;
 		}
 	}
+}
+
+void AsteroidManager::reset()
+{
+	mAsteroidMinInterval = 300;
+	mAsteroidMaxInterval = 1000;
+	mAsteroidMinVelocityInterval = 1;
+	mAsteroidMaxVelocityInterval = 3; // This range will rise by 2 every wave
+	mNextAsteroidIntervalWaitTime = 0;
+	mLastAsteroidTime = 0;
+
+	for (int i=0; i < NUMBER_ASTEROIDS; ++i)
+		mAsteroids[i].get()->reset();
 }

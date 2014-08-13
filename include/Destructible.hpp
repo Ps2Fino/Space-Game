@@ -4,7 +4,7 @@
 #include "Sprite.hpp"
 
 /**
-  * Tis is an abstract class that represents
+  * This is an abstract class that represents
   * a destructibele. A destructible is any entity in the
   * game that only lives for a short time and is destructible
   * eg bullets, asteroids etc.

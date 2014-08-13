@@ -2,6 +2,8 @@
 #include "Stats.hpp"
 #include "RSConstants.hpp"
 
+#include "AsteroidManager.hpp"
+
 // Initialize the static texture variable
 SDL_Texture* Asteroid::asteroidTexture = NULL;
 
@@ -11,9 +13,9 @@ SDL_Texture* Asteroid::asteroidTexture = NULL;
 	#include <cstdlib> // For generating random numbers
 #endif
 
-Asteroid::Asteroid(SDL_Renderer *renderer, int velocity)
+Asteroid::Asteroid(SDL_Renderer *renderer, AsteroidManager *parentManager, int velocity)
 				: Destructible(renderer, ASTEROID_WIDTH, ASTEROID_HEIGHT, -ASTEROID_WIDTH, 0),
-				mVelocity = velocity
+				mVelocity(velocity)
 {
 	// We've 8 to choose from
 	mTextureRegion.x = 64 * 3; // Lets pick the 3rd row across on the sprite sheet
@@ -21,6 +23,7 @@ Asteroid::Asteroid(SDL_Renderer *renderer, int velocity)
 	mTextureRegion.w = ASTEROID_WIDTH;
 	mTextureRegion.h = ASTEROID_HEIGHT;
 	mIsActive = true;
+	mParentManager = parentManager;
 }
 
 Asteroid::~Asteroid()
@@ -31,21 +34,15 @@ void Asteroid::activate(int xPos, int yPos)
 {
 	if (!mIsActive)
 	{
-		mIsActive = true;
-		mX_pos = GAME_WINDOW_WIDTH + ASTEROID_WIDTH; // The edge of the game sceen plus the width of the asteroid sprite
+		// The edge of the game sceen plus the width of the asteroid sprite
+		mX_pos = GAME_WINDOW_WIDTH + ASTEROID_WIDTH;
 
-#ifdef USE_CPP_RANDOM
-		std::random_device rd; // obtain a random number from hardware
-	    std::mt19937 eng(rd()); // seed the generator
-	    std::uniform_int_distribution<> distr(0, GAME_WINDOW_HEIGHT - ASTEROID_HEIGHT); // define the range
-	    mY_pos = distr(eng); // Random y position
-#else
-	    int randomY = rand() % ((GAME_WINDOW_HEIGHT - ASTEROID_HEIGHT) + 1);
-	    mY_pos = randomY;
-#endif
+		// Send me somewhere random
+		mY_pos = rand() % ((GAME_WINDOW_HEIGHT - ASTEROID_HEIGHT) + 1);
 
 		mShape.x = mX_pos;
 		mShape.y = mY_pos;
+		mIsActive = true;
 	}
 }
 
@@ -57,12 +54,10 @@ void Asteroid::update(int ev1, int ev2)
 		mShape.x = mX_pos;
 		if (mX_pos < (-1 * ASTEROID_WIDTH))
 		{
-			// record it in the stats, if applicable
-			if (mScoreTable != nullptr)
-			{
-				mScoreTable->loseLife();
-			}
 			deactivate();
+
+			// The player should lose a life here
+			mParentManager->recordAsteroidMissed();
 		}
 	}
 }

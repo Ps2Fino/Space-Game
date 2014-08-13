@@ -49,6 +49,9 @@ enum GAME_STATE {
 #define NUMBER_PLAYER_LIVES 10
 #define SCREEN_FPS 60
 const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
+#define LIFE_WIDTH 50
+#define LIFE_HEIGHT 50
+#define LIFE_VELOCITY 5
 
 ///////////////////////////////////////////
 //// Sizes for entities ///////////////////
@@ -111,7 +114,7 @@ const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 //// Entitiy counts for the game //////////
 ///////////////////////////////////////////
 
-#define NUMBER_ASTEROIDS_TO_WIN 50
+#define NUMBER_ASTEROIDS_TO_WIN 500
 #define NUMBER_BULLETS 5
 #define NUMBER_ASTEROIDS 10
 #define ASTEROID_INTERVAL_RANGE_MIN 100

@@ -4,7 +4,8 @@
 #include <sstream>
 
 Stats::Stats(SDL_Renderer *renderer, TTF_Font *font) : mLives(NUMBER_PLAYER_LIVES),
-				mAsteroids(0), mIsActive(false), mFGColor({255, 0, 0}), mRenderer(renderer), mFont(font)
+				mAsteroids(0), mIsActive(false), mWavesDefeated(0), mCurrWaveScore(0),
+				mFGColor({255, 0, 0}), mRenderer(renderer), mFont(font)
 {
 	// Init the texture for the score
 	setText();
@@ -30,11 +31,19 @@ void Stats::loseLife()
 	}
 }
 
+void Stats::defeatWave()
+{
+	SDL_Log("Defeated a wave! Current wave number is %d", mWavesDefeated + 1);
+	mWavesDefeated++;
+	mCurrWaveScore = 0;
+}
+
 void Stats::shootAsteroid()
 {
 	if (mIsActive)
 	{
 		mAsteroids++;
+		mCurrWaveScore++;
 		setText();
 	}
 }
@@ -43,6 +52,8 @@ void Stats::reset()
 {
 	mAsteroids = 0;
 	mLives = NUMBER_PLAYER_LIVES;
+	mWavesDefeated = 0;
+	mCurrWaveScore = 0;
 	setText(); // Reset the text
 }
 

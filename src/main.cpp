@@ -25,6 +25,7 @@
 #include "Stats.hpp"
 #include "SoundFX.hpp"
 #include "MenuScreen.hpp"
+#include "AsteroidManager.hpp"
 
 ///////////////////////////////////////////
 //// Core functions for the state machine /
@@ -42,16 +43,13 @@ int initSDL(SDL_Window **window, SDL_Renderer **renderer, TTF_Font **font);
 
 void handleInput(int &playerEvent, int &fireEvent);
 
-void updateEnemies(std::vector<AsteroidPtr> &asteroids); // Update the vector of asteroids
-
-void handleCollisions(Ship *player, std::vector<AsteroidPtr> &asteroids, 
+void handleCollisions(Ship *player, AsteroidManager *asteroidManager,
 						Stats *scoreTable); // Simple collision checker for everything
 
 void drawEntities(SDL_Renderer *renderer, Ship *player, 
-					Background *bg, std::vector<AsteroidPtr> &asteroids, 
+					Background *bg, AsteroidManager *asteroidManager,
 					Stats *scoreTable, MenuScreen *menuScreen);
 
-void activateAsteroid();
 int loadLevel(int argc, char **argv);
 
 #ifdef ANDROID_BUILD
@@ -82,11 +80,11 @@ SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 TTF_Font *font = NULL;
 
-std::vector<AsteroidPtr> asteroids;
 ShipPtr ship;
 BackgroundPtr background;
 StatsPtr scoreTable;
 MenuScreenPtr menuScreen;
+AsteroidManagerPtr asteroidManager;
 
 bool running; // The main program loop variable
 #ifdef ANDROID_BUILD
@@ -171,16 +169,8 @@ int main (int argc, char **argv)
 	// Create the score table
 	scoreTable = StatsPtr(new Stats(renderer, font));
 
-//	// Create the enemy array
-//	std::string asteroidImagePath = getResourcePath() + "img/asteroid.png";
-//	SDL_Texture *asteroidTexture = IMG_LoadTexture(renderer, asteroidImagePath.c_str());
-//	Asteroid::asteroidTexture = asteroidTexture; // Set the asteroid texture
-//
-//	for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
-//	{
-//		asteroids.push_back(AsteroidPtr(new Asteroid(renderer)));
-//		asteroids.back().get()->setStats(scoreTable.get()); // Add the stats table to the asteroid
-//	}
+	// Create the asteroid manager
+	asteroidManager = AsteroidManagerPtr(new AsteroidManager(renderer, scoreTable.get()));
 
 #ifdef LOGGING_FPS
 	int countedFrames = 0;
@@ -262,7 +252,6 @@ int main (int argc, char **argv)
 
 	// Cleanup everything. The ship, background and enemies will clean themselves
 	TTF_CloseFont(font);
-	SDL_DestroyTexture(asteroidTexture);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SoundFX::shutDownMixerLibrary();
@@ -284,9 +273,7 @@ void doMenuCase(int &event, unsigned int &lastAsteroidTime)
 	if (centerTouched)
 #endif
 	{
-		// Reset the positions of the asteroids
-		for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
-			asteroids[i].get()->reset();
+		asteroidManager.get()->reset();
 
 		// Turn on the scoring table
 		scoreTable.get()->reset();
@@ -312,9 +299,8 @@ void doMenuCase(int &event, unsigned int &lastAsteroidTime)
 
 	// In the menu case, we just display the asteroids moving across the screen
 	// and display the "press space to play button"
-
-	updateEnemies(asteroids);
-	drawEntities(renderer, NULL, background.get(), asteroids, NULL, menuScreen.get());
+	asteroidManager.get()->update();
+	drawEntities(renderer, NULL, background.get(), asteroidManager.get(), NULL, menuScreen.get());
 }
 
 void doGameCase(int &event, int &fireEvent, unsigned int &lastAsteroidTime)
@@ -343,28 +329,15 @@ void doGameCase(int &event, int &fireEvent, unsigned int &lastAsteroidTime)
 		return;
 	}
 
-	// Fire an asteroid if enough time has passed
-	if (lastAsteroidTime + ASTEROID_INTERVAL <= SDL_GetTicks())
-	{
-#ifdef USE_CPP_RANDOM
-		ASTEROID_INTERVAL = distr(eng);
-#else
-		int randomNum = rand() % ASTEROID_INTERVAL_RANGE_MIN + (ASTEROID_INTERVAL_RANGE_MAX + 1);
-		ASTEROID_INTERVAL = randomNum;
-#endif
-		lastAsteroidTime = SDL_GetTicks();
-		activateAsteroid();
-	}
-
 	// Update the player ship and the asteroid belt
 	ship.get()->update(event, fireEvent);
-	updateEnemies(asteroids);
+	asteroidManager.get()->update();
 
 	// Check collisions here
-	handleCollisions(ship.get(), asteroids, scoreTable.get());
+	handleCollisions(ship.get(), asteroidManager.get(), scoreTable.get());
 
 	// Draw stuff
-	drawEntities(renderer, ship.get(), background.get(), asteroids, scoreTable.get(), NULL);
+	drawEntities(renderer, ship.get(), background.get(), asteroidManager.get(), scoreTable.get(), NULL);
 }
 
 void doGameOverCase(int &event, unsigned int &lastAsteroidTime)
@@ -375,9 +348,8 @@ void doGameOverCase(int &event, unsigned int &lastAsteroidTime)
 	if (centerTouched) // if (centerTouched = true) is a fun bug. See if you can figure out the logic :-)
 #endif
 	{
-		// Reset the positions of the asteroids
-		for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
-			asteroids[i].get()->reset();
+		// Reset the asteroid belt
+		asteroidManager.get()->reset();
 
 		// Reset the ship
 		ship.get()->reset();
@@ -394,21 +366,23 @@ void doGameOverCase(int &event, unsigned int &lastAsteroidTime)
 	}
 
 	// Fire an asteroid if enough time has passed
-	if (lastAsteroidTime + ASTEROID_INTERVAL <= SDL_GetTicks())
-	{
-#ifdef USE_CPP_RANDOM
-		ASTEROID_INTERVAL = distr(eng);
-#else
-		int randomNum = rand() % ASTEROID_INTERVAL_RANGE_MIN + (ASTEROID_INTERVAL_RANGE_MAX + 1);
-		ASTEROID_INTERVAL = randomNum;
-#endif
-		lastAsteroidTime = SDL_GetTicks();
-		activateAsteroid();
-	}
+//	if (lastAsteroidTime + ASTEROID_INTERVAL <= SDL_GetTicks())
+//	{
+//#ifdef USE_CPP_RANDOM
+//		ASTEROID_INTERVAL = distr(eng);
+//#else
+//		int randomNum = rand() % ASTEROID_INTERVAL_RANGE_MIN + (ASTEROID_INTERVAL_RANGE_MAX + 1);
+//		ASTEROID_INTERVAL = randomNum;
+//#endif
+//		lastAsteroidTime = SDL_GetTicks();
+//		activateAsteroid();
+//	}
 
 	ship.get()->update(NONE, NONE);
-	updateEnemies(asteroids);
-	drawEntities(renderer, ship.get(), background.get(), asteroids, scoreTable.get(), menuScreen.get());
+	asteroidManager.get()->update();
+	drawEntities(renderer, ship.get(), background.get(),
+				 asteroidManager.get(), scoreTable.get(),
+				 menuScreen.get());
 }
 
 int loadLevel(int argc, char **argv)
@@ -425,19 +399,6 @@ int loadLevel(int argc, char **argv)
 	}
 	return level;
 }
-
-//void activateAsteroid()
-//{
-//	for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
-//	{
-//		Asteroid *currAsteroid = asteroids[i].get();
-//		if (!currAsteroid->checkIsActivated())
-//		{
-//			currAsteroid->activate();
-//			break;
-//		}
-//	}
-//}
 
 int initSDL(SDL_Window **window, SDL_Renderer **renderer, TTF_Font **font)
 {
@@ -511,14 +472,10 @@ int initSDL(SDL_Window **window, SDL_Renderer **renderer, TTF_Font **font)
 	return 0;
 }
 
-//void updateEnemies(std::vector<AsteroidPtr> &asteroids)
-//{
-//	for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
-//		asteroids[i].get()->update();
-//}
-
-void handleCollisions(Ship *player, std::vector<AsteroidPtr> &asteroids, Stats *scoreTable)
+void handleCollisions(Ship *player, AsteroidManager *asteroidManager, Stats *scoreTable)
 {
+	std::vector<AsteroidPtr> asteroids = asteroidManager->getAsteroids();
+
 	for (std::vector<AsteroidPtr>::iterator asteroidIt = asteroids.begin(); asteroidIt != asteroids.end(); ++asteroidIt)
 	{
 		AsteroidPtr currAsteroid = *asteroidIt;
@@ -555,7 +512,7 @@ void handleCollisions(Ship *player, std::vector<AsteroidPtr> &asteroids, Stats *
 }
 
 void drawEntities(SDL_Renderer *renderer, Ship *player, 
-					Background *bg, std::vector<AsteroidPtr> &asteroids, 
+					Background *bg, AsteroidManager *asteroidManager,
 					Stats *scoreTable, MenuScreen *menuScreen)
 {
 	// Now draw the frame
@@ -566,10 +523,9 @@ void drawEntities(SDL_Renderer *renderer, Ship *player,
 		bg->draw();
 	}
 	
-	if (!asteroids.empty())
+	if (asteroidManager != NULL)
 	{
-		for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
-			asteroids[i].get()->draw();
+		asteroidManager->draw();
 	}
 
 	if (player != nullptr)

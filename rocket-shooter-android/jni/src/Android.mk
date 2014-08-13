@@ -27,7 +27,7 @@ LOCAL_SRC_FILES := $(SDL_PATH)/src/main/android/SDL_android_main.c \
 	SoundFX.cpp \
 	Sprite.cpp \
 	Stats.cpp \
-	GameModifier.cpp
+	AsteroidManager.cpp \
 
 LOCAL_SHARED_LIBRARIES := SDL2 SDL2_ttf SDL2_mixer SDL2_image
 
