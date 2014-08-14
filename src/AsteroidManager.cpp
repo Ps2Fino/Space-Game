@@ -3,6 +3,7 @@
 
 #define ABS_MIN_INTERVAL 300
 #define ABS_MAX_VELOCITY 8
+#define ABS_MIN_VELOCITY 6
 
 AsteroidManager::AsteroidManager(SDL_Renderer *renderer, Stats *stats)
 	: mAsteroidSpawnInterval(20)
@@ -46,28 +47,33 @@ void AsteroidManager::update()
 		mGameScore->defeatWave();
 		int numWavesDefeated = mGameScore->getNumWavesDefeated();
 
-//		SDL_Log("Number of waves defeated: %d\n", numWavesDefeated);
-
 		// Reduce the wait time unless we've hit rock bottom
 		mAsteroidMaxInterval =
 				(mAsteroidMaxInterval <= ABS_MIN_INTERVAL) ? mAsteroidMaxInterval = ABS_MIN_INTERVAL
-						: 500 - (mAsteroidSpawnInterval * (numWavesDefeated));
+						: 1000 - (mAsteroidSpawnInterval * (numWavesDefeated));
 
-		SDL_Log("Setting the mAsteroidMaxInterval to: %d\n", mAsteroidMaxInterval);
+		// Raise the max velocity every wave
+		// Raise the min velocity every 2 waves
+		mAsteroidMaxVelocityInterval =
+			(mAsteroidMaxVelocityInterval >= ABS_MAX_VELOCITY) 
+				? ABS_MAX_VELOCITY : mAsteroidMaxVelocityInterval + 1;
 
 		if (numWavesDefeated % 2)
-			mAsteroidMaxVelocityInterval++; // Raise the max velocity every two waves
-//		else if (numWavesDefeated % 4)
-//			mAsteroidMinVelocityInterval++; // Raise the min velocity every 4 waves
+		{
+			mAsteroidMinVelocityInterval = 
+				(mAsteroidMinVelocityInterval >= ABS_MIN_VELOCITY)
+					? ABS_MIN_VELOCITY : mAsteroidMinVelocityInterval + 1;
+		}
 	}
 	
 	// Fire an asteroid if enough time has passed
 	if (mLastAsteroidTime + mNextAsteroidIntervalWaitTime <= SDL_GetTicks())
 	{
-		mNextAsteroidIntervalWaitTime = 
-				rand() % mAsteroidMinInterval + (mAsteroidMaxInterval + 1);
-
-//		SDL_Log("Will activate next asteroid in %d ms\n", mNextAsteroidIntervalWaitTime);
+		int range = mAsteroidMaxInterval - mAsteroidMinInterval;
+		if (range <= 0)
+			mNextAsteroidIntervalWaitTime = mAsteroidMinInterval;
+		else
+			mNextAsteroidIntervalWaitTime = rand() % range + mAsteroidMinInterval;
 
 		mLastAsteroidTime = SDL_GetTicks();
 		activateAsteroid();
@@ -127,7 +133,7 @@ void AsteroidManager::reset()
 	mAsteroidMaxInterval = 1000;
 	mAsteroidMinVelocityInterval = 1;
 	mAsteroidMaxVelocityInterval = 3; // This range will rise by 2 every wave
-	mNextAsteroidIntervalWaitTime = 0;
+	mNextAsteroidIntervalWaitTime = 500;
 	mLastAsteroidTime = 0;
 
 	for (int i=0; i < NUMBER_ASTEROIDS; ++i)

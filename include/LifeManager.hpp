@@ -20,7 +20,8 @@ public:
 	void drawLife();
  	void shootLife();
  	Life * getLife() { return life.get(); }
- 	void deactivateLife() { life.get()->reset(); }
+ 	void reset() { life.get()->reset(); }
+ 	void activate() { life.get()->activate(); }
 
 private:
 	Stats *mGameScore;

@@ -33,7 +33,7 @@ void LifeManager::update()
 		life.get()->activate();
 
 		// Set the new target
-		int target = rand() % 10 + 1; // Blow up between 1 and 10 asteroids
+		int target = rand() % 20 + 1; // Blow up between 1 and 20 asteroids
 //		int target = 5;
 		mAsteroidsToShootForLifeSpawn += target;
 

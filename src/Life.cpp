@@ -57,6 +57,9 @@ void Life::reset()
 	mVelocity = 0;
 	mY_pos = -1 * LIFE_WIDTH;
 	mX_pos = 0;
+	mShape.x = mX_pos;
+	mShape.y = mY_pos;
+	
 	// Give it a random value
 	mValue = rand() % 5 + 1;
 //	mValue = 1;

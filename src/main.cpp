@@ -279,29 +279,15 @@ void doMenuCase(int &event, unsigned int &lastAsteroidTime)
 	if (centerTouched)
 #endif
 	{
+		// Reset everything to make it ready for the game
 		asteroidManager.get()->reset();
-
-		// Turn on the scoring table
 		scoreTable.get()->reset();
 		scoreTable.get()->activate();
+		lifeManager.get()->reset();
 
 		state = GAME;
 		return; // Move to the game state
 	}
-
-	// We'll come back to this effect some day
-//	// Fire an asteroid if enough time has passed
-//	if (lastAsteroidTime + ASTEROID_INTERVAL <= SDL_GetTicks())
-//	{
-//#ifdef USE_CPP_RANDOM
-//		ASTEROID_INTERVAL = distr(eng);
-//#else
-//		int randomNum = rand() % ASTEROID_INTERVAL_RANGE_MIN + (ASTEROID_INTERVAL_RANGE_MAX + 1);
-//		ASTEROID_INTERVAL = randomNum;
-//#endif
-//		lastAsteroidTime = SDL_GetTicks();
-//		activateAsteroid();
-//	}
 
 	// In the menu case, we just display the asteroids moving across the screen
 	// and display the "press space to play button"
@@ -326,7 +312,7 @@ void doGameCase(int &event, int &fireEvent, unsigned int &lastAsteroidTime)
 		menuScreen.get()->setText(gameOverText);
 
 		// Turn off the life if its showing
-		lifeManager.get()->deactivateLife();
+		lifeManager.get()->reset();
 
 		// Move to the game over state
 		state = GAME_OVER;
@@ -362,6 +348,9 @@ void doGameOverCase(int &event, unsigned int &lastAsteroidTime)
 		// Reset the asteroid belt
 		asteroidManager.get()->reset();
 
+		// Reset the life manager
+		lifeManager.get()->reset();
+
 		// Reset the ship
 		ship.get()->reset();
 
@@ -375,19 +364,6 @@ void doGameOverCase(int &event, unsigned int &lastAsteroidTime)
 		// won't be redrawn
 		// return; // Move to the game state
 	}
-
-	// Fire an asteroid if enough time has passed
-//	if (lastAsteroidTime + ASTEROID_INTERVAL <= SDL_GetTicks())
-//	{
-//#ifdef USE_CPP_RANDOM
-//		ASTEROID_INTERVAL = distr(eng);
-//#else
-//		int randomNum = rand() % ASTEROID_INTERVAL_RANGE_MIN + (ASTEROID_INTERVAL_RANGE_MAX + 1);
-//		ASTEROID_INTERVAL = randomNum;
-//#endif
-//		lastAsteroidTime = SDL_GetTicks();
-//		activateAsteroid();
-//	}
 
 	ship.get()->update(NONE, NONE);
 	asteroidManager.get()->update();
