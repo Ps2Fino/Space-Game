@@ -29,11 +29,12 @@ void LifeManager::update()
 	int score = mGameScore->getScore();
 	if (score >= mAsteroidsToShootForLifeSpawn)
 	{
+		life.get()->reset();
 		life.get()->activate();
 
 		// Set the new target
-//		int target = rand() % 10 + 1; // Blow up between 1 and 10 asteroids
-		int target = 5;
+		int target = rand() % 10 + 1; // Blow up between 1 and 10 asteroids
+//		int target = 5;
 		mAsteroidsToShootForLifeSpawn += target;
 
 		SDL_Log("The new target is: %d\n", mAsteroidsToShootForLifeSpawn);
@@ -44,8 +45,12 @@ void LifeManager::update()
 
 void LifeManager::shootLife()
 {
-	mGameScore->addLives(life.get()->getValue());
-	life.get()->reset();
+	if (life.get()->checkIsActivated())
+	{
+		int numLivesToAdd = life.get()->getValue();
+		mGameScore->addLives(numLivesToAdd);
+		life.get()->reset();
+	}
 }
 
 void LifeManager::drawLife()

@@ -48,6 +48,15 @@ void Stats::shootAsteroid()
 	}
 }
 
+void Stats::addLives(int numToAdd)
+{
+	if (mIsActive)
+	{
+		mLives += numToAdd;
+		setText();
+	}
+}
+
 void Stats::reset()
 {
 	mAsteroids = 0;

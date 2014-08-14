@@ -326,7 +326,7 @@ void doGameCase(int &event, int &fireEvent, unsigned int &lastAsteroidTime)
 		menuScreen.get()->setText(gameOverText);
 
 		// Turn off the life if its showing
-		lifeManager.get()->deactivate();
+		lifeManager.get()->deactivateLife();
 
 		// Move to the game over state
 		state = GAME_OVER;
@@ -486,6 +486,10 @@ int initSDL(SDL_Window **window, SDL_Renderer **renderer, TTF_Font **font)
 void handleCollisions(Ship *player, AsteroidManager *asteroidManager,
 						LifeManager *lifeManager, Stats *scoreTable)
 {
+	//////////////////////////////////////////////////////////////////////
+	////// Detect the asteroid hits //////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////
+
 	std::vector<AsteroidPtr> asteroids = asteroidManager->getAsteroids();
 
 	for (std::vector<AsteroidPtr>::iterator asteroidIt = asteroids.begin(); asteroidIt != asteroids.end(); ++asteroidIt)
@@ -523,8 +527,14 @@ void handleCollisions(Ship *player, AsteroidManager *asteroidManager,
 		}
 	}
 
+
+	//////////////////////////////////////////////////////////////////////
+	////// Detect the life hit ///////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////
+
 	// Loop over all the bullets and check for collisions against the life
 	SDL_Rect lifeRect = lifeManager->getLife()->getSize();
+	std::vector<BulletPtr> bullets = player->getBullets();
 
 	for (std::vector<BulletPtr>::iterator bulletIt = bullets.begin(); bulletIt != bullets.end(); ++bulletIt)
 	{
@@ -542,8 +552,10 @@ void handleCollisions(Ship *player, AsteroidManager *asteroidManager,
 			if (lifeRect.y >= bulletRect.y - ASTEROID_OFFSET
 					&& lifeRect.y <= bulletRect.y + BULLET_COLLISION_HEIGHT)
 			{
-				// Record the life as defeated
-				lifeManager->deactivateLife();
+				static int numCalls = 0;
+				SDL_Log("The bullet shot a life %d time(s)\n", numCalls++);
+				// Add the lives
+				lifeManager->shootLife();
 				break;
 			}
 		}

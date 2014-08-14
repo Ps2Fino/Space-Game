@@ -19,7 +19,8 @@ public:
 	void update(); // This will just check if we've killed enough asteroids to gain a life spawn
 	void drawLife();
  	void shootLife();
-// 	Life * getLife() { return life.get(); }
+ 	Life * getLife() { return life.get(); }
+ 	void deactivateLife() { life.get()->reset(); }
 
 private:
 	Stats *mGameScore;

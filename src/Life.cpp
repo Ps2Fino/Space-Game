@@ -8,6 +8,7 @@ Life::Life(SDL_Renderer *renderer, int width, int height, int x, int y)
 {
 	// Give it a random value when it is spawned
 	mValue = rand() % 5 + 1;
+//	mValue = 1;
 }
 
 Life::~Life()
@@ -30,7 +31,8 @@ void Life::activate(int x, int y)
 	}
 
 	// Now pick the spawn location
-	mX_pos = rand() % (GAME_WINDOW_WIDTH - LIFE_WIDTH + SHIP_WIDTH);
+	mX_pos = rand() % (GAME_WINDOW_WIDTH - LIFE_WIDTH);
+	if (mX_pos < SHIP_WIDTH) mX_pos += SHIP_WIDTH; // Stop the heart appearing off the screen
 
 	// Set the position
 	setPosition(mX_pos, mY_pos);
@@ -57,6 +59,7 @@ void Life::reset()
 	mX_pos = 0;
 	// Give it a random value
 	mValue = rand() % 5 + 1;
+//	mValue = 1;
 	mIsActive = false;
 }
 

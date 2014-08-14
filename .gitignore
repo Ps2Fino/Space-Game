@@ -1,3 +1,4 @@
+rocket-shooter-android/bin/**/*
 rocket-shooter-android/jni/SDL*
 rocket-shooter-android/obj/*
 libs/
