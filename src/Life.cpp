@@ -34,6 +34,8 @@ void Life::activate(int x, int y)
 	mX_pos = rand() % (GAME_WINDOW_WIDTH - LIFE_WIDTH);
 	if (mX_pos < SHIP_WIDTH) mX_pos += SHIP_WIDTH; // Stop the heart appearing off the screen
 
+	SDL_Log("Life was activated at X: %d\tY: %d\n", mX_pos, mY_pos);
+
 	// Set the position
 	setPosition(mX_pos, mY_pos);
 

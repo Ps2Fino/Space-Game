@@ -16,24 +16,34 @@ public class MyActivity extends SDLActivity {
 	public native void resumeMusic();
 	public native void stopMusic();
 	
+	// We set this variable from the underlying C++ code below
+	// As well as from the Java code
+	boolean isPlayingMusic = false;
+	
 	@Override
 	protected void onPause() {
-		pauseMusic();
+		if (isPlayingMusic) {
+			pauseMusic();
+		}
 		super.onPause();
-//		pauseMusic();
 	}
 	
 	@Override
 	protected void onResume() {
-		resumeMusic();
+		// This method will also be called after
+		// onCreate and onStart
+		
+		if (isPlayingMusic) {
+			resumeMusic();
+		}
 		super.onResume();
-//		resumeMusic();
 	}
 	
 	@Override
 	protected void onDestroy() {
-		stopMusic();
+		if (isPlayingMusic) {
+			stopMusic();
+		}
 		super.onDestroy();
-//		stopMusic();
 	}
 }
