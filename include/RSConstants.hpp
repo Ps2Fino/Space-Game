@@ -6,7 +6,6 @@
 
 // #define USE_CPP_RANDOM // Use this as a compile time flag to use the experimental 64 bit <random> library
 // #define LOGGING_FPS YES // Use this as a compile time flag log the fps during the game loop
-// #define ANDROID_BUILD YES // Use this as a compile time flag to build for android
 
 // The events that the input handler will check for
 enum GAME_EVENT {
@@ -79,11 +78,7 @@ const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 //// Menu Screen //////////////////////////
 ///////////////////////////////////////////
 
-#ifndef ANDROID_BUILD
-	#define MENU_SCREEN_TEXT "Press p to play"
-#else
-	#define MENU_SCREEN_TEXT "Touch to play"
-#endif
+#define MENU_SCREEN_TEXT "Press p to play"
 #define MENU_SCREEN_TEXT_LOCATION_X ((GAME_WINDOW_WIDTH / 2) - 150)
 #define MENU_SCREEN_TEXT_LOCATION_Y ((GAME_WINDOW_HEIGHT / 2) - 25)
 #define MENU_SCREEN_TEXT_WIDTH 300

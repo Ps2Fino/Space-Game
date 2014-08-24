@@ -2,14 +2,8 @@
 #include <SDL_image.h> // For loading textures from pngs
 #include <iostream>
 #include <vector> // For the std::vector data structure
-
-#ifdef USE_CPP_RANDOM
-	#include <random> // For random bullet colors
-#else
-	#include <cstdlib> // For random
-	#include <ctime> // For time()
-#endif
-
+#include <cstdlib> // For random
+#include <ctime> // For time()
 
 #include <SDL_ttf.h> // For drawing text to the screen
 
@@ -22,46 +16,24 @@
 #include "Background.hpp"
 #include "Bullet.hpp"
 #include "Asteroid.hpp"
-#include "Stats.hpp"
-#include "SoundFX.hpp"
-#include "MenuScreen.hpp"
-
-///////////////////////////////////////////
-//// Core functions for the state machine /
-///////////////////////////////////////////
-
-void doMenuCase(int &event, unsigned int &lastAsteroidTime);
-void doGameCase(int &event, int &fireEvent, unsigned int &lastAsteroidTime);
-void doGameOverCase(int &event, unsigned int &lastAsteroidTime);
 
 ///////////////////////////////////////////
 //// Core functions for main //////////////
 ///////////////////////////////////////////
 
-int initSDL(SDL_Window **window, SDL_Renderer **renderer, TTF_Font **font);
+int initSDL(SDL_Window **window, SDL_Renderer **renderer);
 
 void handleInput(int &playerEvent, int &fireEvent);
 
 void updateEnemies(std::vector<AsteroidPtr> &asteroids); // Update the vector of asteroids
 
-void handleCollisions(Ship *player, std::vector<AsteroidPtr> &asteroids, 
-						Stats *scoreTable); // Simple collision checker for everything
+void handleCollisions(Ship *player, std::vector<AsteroidPtr> &asteroids); // Simple collision checker for everything
 
 void drawEntities(SDL_Renderer *renderer, Ship *player, 
-					Background *bg, std::vector<AsteroidPtr> &asteroids, 
-					Stats *scoreTable, MenuScreen *menuScreen);
+					Background *bg, std::vector<AsteroidPtr> &asteroids);
 
 void activateAsteroid();
 int loadLevel(int argc, char **argv);
-
-#ifdef ANDROID_BUILD
-#ifdef __cplusplus
-	extern "C"
-	{
-		int handleAndroidLifeCycleEvent(void *userData, SDL_Event *event);
-	}
-#endif
-#endif
 
 ///////////////////////////////////////////
 //// Global variables for the game ////////
@@ -80,31 +52,14 @@ const char *levels[4] = {
 
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
-TTF_Font *font = NULL;
 
 std::vector<AsteroidPtr> asteroids;
 ShipPtr ship;
 BackgroundPtr background;
-StatsPtr scoreTable;
-MenuScreenPtr menuScreen;
 
 bool running; // The main program loop variable
-#ifdef ANDROID_BUILD
-	bool centerTouched = false; // Detect whether or not the screen was touched
-	bool isPaused = false;
-#endif
 
-GAME_STATE state = MENU; // The state of the game
-
-#ifdef USE_CPP_RANDOM
-// Have a variable delay for the asteroids
-	std::random_device rd; // obtain a random number from hardware
-	std::mt19937 eng(rd()); // seed the generator
-	std::uniform_int_distribution<> distr(ASTEROID_INTERVAL_RANGE_MIN, ASTEROID_INTERVAL_RANGE_MAX); // define the range
-	signed int ASTEROID_INTERVAL = distr(eng); // Random time interval
-#else
-	signed int ASTEROID_INTERVAL; // Just declare it for now
-#endif
+signed int ASTEROID_INTERVAL; // Just declare it for now
 
 /**
   * This game runs in the main function of the application
@@ -114,43 +69,18 @@ GAME_STATE state = MENU; // The state of the game
   */
 int main (int argc, char **argv)
 {
-#ifndef USE_CPP_RANDOM
 	srand(time(NULL)); // Set the seed
 	int randomNum = rand() % ASTEROID_INTERVAL_RANGE_MIN + (ASTEROID_INTERVAL_RANGE_MAX + 1);
 	ASTEROID_INTERVAL = randomNum;
-#endif
-
-#ifdef ANDROID_BUILD
-	SDL_SetEventFilter(handleAndroidLifeCycleEvent, NULL);
-#endif
-
 
 	// Get the level we want to play as
 	int level = PLAY_LEVEL;
 	level = loadLevel(argc, argv);
 
 	// establish a window, a rendering context and a font structure for text
-	int status = initSDL(&window, &renderer, &font);
+	int status = initSDL(&window, &renderer);
 	if (status != 0)
 		return 1;
-
-	// Init the sound library
-	status = SoundFX::initMixerLibrary();
-	if (status != 0)
-		return 1;
-
-	status = SoundFX::loadLaserSound();
-	if (status != 0)
-		return 1;
-
-	status = SoundFX::loadMusic();
-	if (status != 0)
-		return 1;
-
-	// The android life cycle will handle the calls to stop and
-	// start the bg music when the application has initialialized but I
-	// explicitly start it here
-	SoundFX::startMusic();
 
 	// Create the background and the ship
 	std::string bgImagePath = getResourcePath() + "img/" + levels[level];
@@ -161,15 +91,9 @@ int main (int argc, char **argv)
 		std::cout << "The background texture is nullptr" << std::endl;
 	}
 
-	// Create the menuscreen
-	menuScreen = MenuScreenPtr(new MenuScreen(renderer, font));
-
 	std::string shipImagePath = getResourcePath() + "img/ship.png";
 	std::string bulletImagePath = getResourcePath() + "img/bullet_strip.png";
 	ship = ShipPtr(new Ship(renderer, shipImagePath, bulletImagePath));
-
-	// Create the score table
-	scoreTable = StatsPtr(new Stats(renderer, font));
 
 	// Create the enemy array
 	std::string asteroidImagePath = getResourcePath() + "img/asteroid.png";
@@ -179,7 +103,6 @@ int main (int argc, char **argv)
 	for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
 	{
 		asteroids.push_back(AsteroidPtr(new Asteroid(renderer)));
-		asteroids.back().get()->setStats(scoreTable.get()); // Add the stats table to the asteroid
 	}
 
 #ifdef LOGGING_FPS
@@ -199,13 +122,6 @@ int main (int argc, char **argv)
 	  */
 	while (running)
 	{
-#ifdef ANDROID_BUILD
-		if (isPaused)
-		{
-			SDL_Delay(300);
-			continue;
-		}
-#endif
 		Uint32 frameStartTime = SDL_GetTicks();
 
 		handleInput(gameEvent, fireEvent);
@@ -218,23 +134,26 @@ int main (int argc, char **argv)
 			continue; // Short circuit the rest of the function
 		}
 
-		switch (state)
+		// Fire an asteroid if enough time has passed
+		if (lastAsteroidTime + ASTEROID_INTERVAL <= SDL_GetTicks())
 		{
-			case MENU:
-				doMenuCase(gameEvent, lastAsteroidTime);
-				break;
-
-			case GAME:
-				doGameCase(gameEvent, fireEvent, lastAsteroidTime);
-				break;
-
-			case GAME_OVER:
-				doGameOverCase(gameEvent, lastAsteroidTime);
-				break;
-
-			default:
-				break;
+			int randomNum = rand() % ASTEROID_INTERVAL_RANGE_MIN + (ASTEROID_INTERVAL_RANGE_MAX + 1);
+			ASTEROID_INTERVAL = randomNum;
+			lastAsteroidTime = SDL_GetTicks();
+			activateAsteroid();
 		}
+
+		// Update the player ship and the asteroid belt
+		ship.get()->update(gameEvent, fireEvent);
+		updateEnemies(asteroids);
+
+		/*
+		 * TODO: Handle collisions between the bullet and the asteroids
+		 */
+
+		// Draw stuff
+		drawEntities(renderer, ship.get(), background.get(), asteroids);
+
 
 #ifdef LOGGING_FPS
 		// Before we draw, calculate how fast that fram took to compute
@@ -261,153 +180,15 @@ int main (int argc, char **argv)
 	}
 
 	// Cleanup everything. The ship, background and enemies will clean themselves
-	TTF_CloseFont(font);
 	SDL_DestroyTexture(asteroidTexture);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
-	SoundFX::shutDownMixerLibrary();
-	TTF_Quit();
 	SDL_Quit();
 
 	renderer = NULL;
 	window = NULL;
-	font = NULL;
 
 	return 0;
-}
-
-void doMenuCase(int &event, unsigned int &lastAsteroidTime)
-{
-#ifndef ANDROID_BUILD
-	if (event == KEY_P_PRESSED)
-#else
-	if (centerTouched)
-#endif
-	{
-		// Reset the positions of the asteroids
-		for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
-			asteroids[i].get()->reset();
-
-		// Turn on the scoring table
-		scoreTable.get()->reset();
-		scoreTable.get()->activate();
-
-		state = GAME;
-		return; // Move to the game state
-	}
-
-	// Fire an asteroid if enough time has passed
-	if (lastAsteroidTime + ASTEROID_INTERVAL <= SDL_GetTicks())
-	{
-#ifdef USE_CPP_RANDOM
-		ASTEROID_INTERVAL = distr(eng);
-#else
-		int randomNum = rand() % ASTEROID_INTERVAL_RANGE_MIN + (ASTEROID_INTERVAL_RANGE_MAX + 1);
-		ASTEROID_INTERVAL = randomNum;
-#endif
-		lastAsteroidTime = SDL_GetTicks();
-		activateAsteroid();
-	}
-
-	// In the menu case, we just display the asteroids moving across the screen
-	// and display the "press space to play button"
-
-	updateEnemies(asteroids);
-	drawEntities(renderer, NULL, background.get(), asteroids, NULL, menuScreen.get());
-}
-
-void doGameCase(int &event, int &fireEvent, unsigned int &lastAsteroidTime)
-{
-	// Check the stats class to see if the game has ended
-	if (scoreTable.get()->checkIsGameOver())
-	{
-		// Turn off the score table
-		scoreTable.get()->deactivate();
-
-		// Set the menu screens' text
-		std::string gameOverText;
-		if (scoreTable.get()->playerWon())
-			gameOverText = "You won!";
-		else
-			gameOverText = "You lost";
-		menuScreen.get()->setText(gameOverText);
-
-		// Move to the game over state
-		state = GAME_OVER;
-
-		// Quick hack because the event was passed by reference. If the user doesn't press anthing
-		// the game over screen will never be played because the event will be P_PRESSED which will just automatically
-		// start the next game
-		event = NONE;
-		return;
-	}
-
-	// Fire an asteroid if enough time has passed
-	if (lastAsteroidTime + ASTEROID_INTERVAL <= SDL_GetTicks())
-	{
-#ifdef USE_CPP_RANDOM
-		ASTEROID_INTERVAL = distr(eng);
-#else
-		int randomNum = rand() % ASTEROID_INTERVAL_RANGE_MIN + (ASTEROID_INTERVAL_RANGE_MAX + 1);
-		ASTEROID_INTERVAL = randomNum;
-#endif
-		lastAsteroidTime = SDL_GetTicks();
-		activateAsteroid();
-	}
-
-	// Update the player ship and the asteroid belt
-	ship.get()->update(event, fireEvent);
-	updateEnemies(asteroids);
-
-	// Check collisions here
-	handleCollisions(ship.get(), asteroids, scoreTable.get());
-
-	// Draw stuff
-	drawEntities(renderer, ship.get(), background.get(), asteroids, scoreTable.get(), NULL);
-}
-
-void doGameOverCase(int &event, unsigned int &lastAsteroidTime)
-{
-#ifndef ANDROID_BUILD
-	if (event == KEY_P_PRESSED)
-#else
-	if (centerTouched) // if (centerTouched = true) is a fun bug. See if you can figure out the logic :-)
-#endif
-	{
-		// Reset the positions of the asteroids
-		for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
-			asteroids[i].get()->reset();
-
-		// Reset the ship
-		ship.get()->reset();
-
-		// Turn on the scoring table
-		scoreTable.get()->reset();
-		scoreTable.get()->activate();
-
-		state = GAME;
-
-		// Another hack; we don't want to return because otherwise the new score table
-		// won't be redrawn
-		// return; // Move to the game state
-	}
-
-	// Fire an asteroid if enough time has passed
-	if (lastAsteroidTime + ASTEROID_INTERVAL <= SDL_GetTicks())
-	{
-#ifdef USE_CPP_RANDOM
-		ASTEROID_INTERVAL = distr(eng);
-#else
-		int randomNum = rand() % ASTEROID_INTERVAL_RANGE_MIN + (ASTEROID_INTERVAL_RANGE_MAX + 1);
-		ASTEROID_INTERVAL = randomNum;
-#endif
-		lastAsteroidTime = SDL_GetTicks();
-		activateAsteroid();
-	}
-
-	ship.get()->update(NONE, NONE);
-	updateEnemies(asteroids);
-	drawEntities(renderer, ship.get(), background.get(), asteroids, scoreTable.get(), menuScreen.get());
 }
 
 int loadLevel(int argc, char **argv)
@@ -438,30 +219,19 @@ void activateAsteroid()
 	}
 }
 
-int initSDL(SDL_Window **window, SDL_Renderer **renderer, TTF_Font **font)
+int initSDL(SDL_Window **window, SDL_Renderer **renderer)
 {
 	SDL_Window *tempWin = NULL;
 	SDL_Renderer *tempRen = NULL;
-	TTF_Font *tempFont = NULL;
 
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
 		std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
 		return 1;
 	}
 
-	if (TTF_Init() != 0)
-	{
-		std::cout << "TTF_Init Error: " << TTF_GetError() << std::endl;
-	}
-
-#ifndef ANDROID_BUILD
 	// Create the window that will hold our game
 	tempWin = SDL_CreateWindow("Rocket Shooter!", 100, 100,
 									GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT, 0); // SDL_WINDOW_SHOWN is ignored
-#else
-	tempWin = SDL_CreateWindow(NULL, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-									0, 0, SDL_WINDOW_FULLSCREEN_DESKTOP);
-#endif
 	if (tempWin == nullptr)
 	{
 		std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
@@ -476,24 +246,6 @@ int initSDL(SDL_Window **window, SDL_Renderer **renderer, TTF_Font **font)
 	{
 		std::cout << "SDL_CreateRenderer Error: " << SDL_GetError() << std::endl;
 		SDL_DestroyWindow(tempWin);
-		TTF_Quit();
-		SDL_Quit();
-		return 1;
-	}
-
-#ifdef ANDROID_BUILD
-	SDL_RenderSetLogicalSize(tempRen, 640, 480);
-#endif
-
-	// Load  the font
-	std::string fontPath = getResourcePath() + "fonts/tiptoe.ttf";
-	tempFont = TTF_OpenFont(fontPath.c_str(), TEXT_FONT_SIZE);
-	if (tempFont == nullptr)
-	{
-		std::cout << "TTF_OpenFont Error: " << TTF_GetError() << std::endl;
-		SDL_DestroyWindow(tempWin);
-		SDL_DestroyRenderer(tempRen);
-		TTF_Quit();
 		SDL_Quit();
 		return 1;
 	}
@@ -501,11 +253,9 @@ int initSDL(SDL_Window **window, SDL_Renderer **renderer, TTF_Font **font)
 	// Pass over the temps
 	*window = tempWin;
 	*renderer = tempRen;
-	*font = tempFont;
 
 	tempWin = NULL;
 	tempRen = NULL;
-	tempFont = NULL;
 
 	return 0;
 }
@@ -516,46 +266,15 @@ void updateEnemies(std::vector<AsteroidPtr> &asteroids)
 		asteroids[i].get()->update();
 }
 
-void handleCollisions(Ship *player, std::vector<AsteroidPtr> &asteroids, Stats *scoreTable)
+void handleCollisions(Ship *player, std::vector<AsteroidPtr> &asteroids)
 {
-	for (std::vector<AsteroidPtr>::iterator asteroidIt = asteroids.begin(); asteroidIt != asteroids.end(); ++asteroidIt)
-	{
-		AsteroidPtr currAsteroid = *asteroidIt;
-
-		if (!currAsteroid.get()->checkIsActivated())
-			continue; // An inactive asteroid can't be hit anyways
-
-		SDL_Rect asteroidRect = currAsteroid.get()->getSize();
-		std::vector<BulletPtr> bullets = player->getBullets();
-		for (std::vector<BulletPtr>::iterator bulletIt = bullets.begin(); bulletIt != bullets.end(); ++bulletIt)
-		{
-			BulletPtr currBullet = *bulletIt;
-			if (!currBullet.get()->checkIsActivated())
-				continue; // An inactive bullet can't be used to shoot an asteroid
-
-			SDL_Rect bulletRect = currBullet.get()->getSize();
-
-			if (asteroidRect.x >= bulletRect.x
-					&& asteroidRect.x <= bulletRect.x + BULLET_COLLISION_WIDTH)
-			{
-				if (asteroidRect.y >= bulletRect.y - ASTEROID_OFFSET
-						&& asteroidRect.y <= bulletRect.y + BULLET_COLLISION_HEIGHT)
-				{
-					currAsteroid.get()->deactivate();
-					currBullet.get()->deactivate();
-
-					// record the score
-					scoreTable->shootAsteroid();
-					break;
-				}
-			}
-		}
-	}
+	/**
+	  * TODO: Implement the collision handling code here
+	  */
 }
 
 void drawEntities(SDL_Renderer *renderer, Ship *player, 
-					Background *bg, std::vector<AsteroidPtr> &asteroids, 
-					Stats *scoreTable, MenuScreen *menuScreen)
+					Background *bg, std::vector<AsteroidPtr> &asteroids)
 {
 	// Now draw the frame
 	SDL_RenderClear(renderer);
@@ -576,16 +295,6 @@ void drawEntities(SDL_Renderer *renderer, Ship *player,
 		player->draw();
 	}
 
-	if (scoreTable != nullptr)
-	{
-		scoreTable->draw();
-	}
-
-	if (menuScreen != nullptr)
-	{
-		menuScreen->draw();
-	}
-
 	// Present everything to be rendered
 	SDL_RenderPresent(renderer);
 }
@@ -595,211 +304,71 @@ void drawEntities(SDL_Renderer *renderer, Ship *player,
   * 4 buttons as input: Up, down, space bar and escape
   * This function checks which one was pressed and acts accordingly
   */
-#ifndef ANDROID_BUILD
-	void handleInput(int &gameEvent, int &fireEvent)
+void handleInput(int &gameEvent, int &fireEvent)
+{
+	SDL_Event event;
+	while (SDL_PollEvent(&event))
 	{
-		SDL_Event event;
-		while (SDL_PollEvent(&event))
+		switch(event.type)
 		{
-			switch(event.type)
-			{
-				case SDL_KEYDOWN:
-					switch (event.key.keysym.sym)
-					{
-						case SDLK_UP:
-							gameEvent = KEY_UP_PRESSED;
-							break;
-
-						case SDLK_DOWN:
-							gameEvent = KEY_DOWN_PRESSED;
-							break;
-
-						case SDLK_ESCAPE:
-							gameEvent = KEY_ESCAPE_PRESSED;
-							break;
-
-						case SDLK_SPACE:
-							fireEvent = KEY_SPACE_PRESSED;
-							break;
-
-						case SDLK_p:
-							gameEvent = KEY_P_PRESSED;
-							break;
-
-						default:
-							break;
-					}
-					break;
-
-				case SDL_KEYUP:
-					switch (event.key.keysym.sym)
-					{
-						case SDLK_UP:
-							gameEvent = KEY_RELEASED;
-							break;
-
-						case SDLK_DOWN:
-							gameEvent = KEY_RELEASED;
-							break;
-
-						case SDLK_ESCAPE:
-							gameEvent = KEY_RELEASED;
-							break;
-
-						case SDLK_SPACE:
-							fireEvent = KEY_RELEASED;
-							break;
-
-						default:
-							break;
-					}
-					break;
-
-				case SDL_QUIT:
-					gameEvent = GAME_QUIT;
-					break;
-
-				default:
-					break;
-			}
-		}
-	}
-#else
-	void handleInput(int &gameEvent, int &fireEvent)
-	{
-		SDL_Event event;
-		while (SDL_PollEvent(&event))
-		{
-//			SDL_Log("The finger index ID: %d", event.tfinger.fingerId);
-			switch(event.type)
-			{
-				case SDL_FINGERDOWN:
-					// If we touched the location of one of the soft buttons,
-					// then trigger the movement for the ship
-					if (event.tfinger.y < 0.5
-							&& event.tfinger.x <= 0.3)
-					{
+			case SDL_KEYDOWN:
+				switch (event.key.keysym.sym)
+				{
+					case SDLK_UP:
 						gameEvent = KEY_UP_PRESSED;
-					}
+						break;
 
-					if (event.tfinger.y >= 0.5
-								&& event.tfinger.x <= 0.3)
-					{
+					case SDLK_DOWN:
 						gameEvent = KEY_DOWN_PRESSED;
-					}
+						break;
 
-					if (event.tfinger.y >= 0.7
-								&& event.tfinger.x >= 0.7)
-					{
+					case SDLK_ESCAPE:
+						gameEvent = KEY_ESCAPE_PRESSED;
+						break;
+
+					case SDLK_SPACE:
 						fireEvent = KEY_SPACE_PRESSED;
-					}
+						break;
 
-					// Touching the center of the screen will activate the menu transitions
-					if (event.tfinger.y >= 0.4
-							&& event.tfinger.y < 0.6
-							&& event.tfinger.x >= 0.4
-							&& event.tfinger.x < 0.6)
-					{
-						centerTouched = true;
-					}
+					case SDLK_p:
+						gameEvent = KEY_P_PRESSED;
+						break;
 
-					break;
+					default:
+						break;
+				}
+				break;
 
-				case SDL_FINGERUP:
-					if (event.tfinger.y < 0.5
-							&& event.tfinger.x <= 0.3)
-					{
+			case SDL_KEYUP:
+				switch (event.key.keysym.sym)
+				{
+					case SDLK_UP:
 						gameEvent = KEY_RELEASED;
-					}
+						break;
 
-					if (event.tfinger.y >= 0.5
-								&& event.tfinger.x <= 0.3)
-					{
+					case SDLK_DOWN:
 						gameEvent = KEY_RELEASED;
-					}
+						break;
 
-					if (event.tfinger.y >= 0.7
-								&& event.tfinger.x >= 0.7)
-					{
+					case SDLK_ESCAPE:
+						gameEvent = KEY_RELEASED;
+						break;
+
+					case SDLK_SPACE:
 						fireEvent = KEY_RELEASED;
-					}
+						break;
 
-					centerTouched = false;
-					break;
+					default:
+						break;
+				}
+				break;
 
-				case SDL_QUIT:
-					gameEvent = GAME_QUIT;
-					break;
+			case SDL_QUIT:
+				gameEvent = GAME_QUIT;
+				break;
 
-				default:
-					break;
-			}
+			default:
+				break;
 		}
 	}
-#endif
-
-/**
- * The following functions
- * are only used in the android build
- * of the game
- */
-#ifdef ANDROID_BUILD
-
-#ifdef __cplusplus
-	extern "C"
-	{
-		int handleAndroidLifeCycleEvent(void *userData, SDL_Event *event)
-		{
-			SDL_Log("Handling the life cycle event");
-			switch(event->type)
-			{
-				case SDL_APP_WILLENTERFOREGROUND:
-					SDL_Log("Entering foreground in lifecycle");
-					SoundFX::startMusic();
-					isPaused = false; // Unpause the game
-					break;
-
-				case SDL_APP_WILLENTERBACKGROUND:
-					SDL_Log("Entering background in lifecycle");
-					SoundFX::stopMusic();
-					isPaused = true;
-					break;
-
-				case SDL_APP_TERMINATING:
-					SDL_Log("Terminating in lifecycle");
-					SoundFX::stopMusic();
-					isPaused = true;
-					running = false;
-					break;
-
-				default:
-					break;
-			}
-
-			return 1;
-		}
-
-		// Declare some JNI functions
-		#include <jni.h>
-
-		JNIEXPORT void JNICALL Java_org_dandan_rocket_MyActivity_pauseMusic(JNIEnv*, jobject);
-		JNIEXPORT void JNICALL Java_org_dandan_rocket_MyActivity_resumeMusic(JNIEnv*, jobject);
-		JNIEXPORT void JNICALL Java_org_dandan_rocket_MyActivity_stopMusic(JNIEnv*, jobject);
-
-		JNIEXPORT void JNICALL Java_org_dandan_rocket_MyActivity_stopMusic(JNIEnv *env, jobject obj)
-		{
-			SoundFX::stopMusic();
-		}
-
-		JNIEXPORT void JNICALL Java_org_dandan_rocket_MyActivity_pauseMusic(JNIEnv *env, jobject obj)
-		{
-			SoundFX::pauseMusic();
-		}
-
-		JNIEXPORT void JNICALL Java_org_dandan_rocket_MyActivity_resumeMusic(JNIEnv *env, jobject obj)
-		{
-			SoundFX::resumeMusic();
-		}
-	}
-#endif
-#endif
+}
