@@ -5,7 +5,7 @@
 #define ABS_MAX_VELOCITY 8
 #define ABS_MIN_VELOCITY 6
 
-AsteroidManager::AsteroidManager(SDL_Renderer *renderer, Stats *stats)
+AsteroidManager::AsteroidManager(SDL_Renderer *renderer)
 	: mAsteroidSpawnInterval(20)
 {	
 	mAsteroidMinInterval = 300;
@@ -13,9 +13,7 @@ AsteroidManager::AsteroidManager(SDL_Renderer *renderer, Stats *stats)
 	mAsteroidMinVelocityInterval = 1;
 	mAsteroidMaxVelocityInterval = 3; // This range will rise by 2 every wave
 	mNextAsteroidIntervalWaitTime = 500; // Half a second to begin with
-	mGameScore = stats;
 	mLastAsteroidTime = 0;
-	
 	init(renderer);
 }
 
@@ -40,31 +38,11 @@ void AsteroidManager::init(SDL_Renderer *renderer)
 
 void AsteroidManager::update()
 {
-	int waveScore = mGameScore->getWaveScore();
-	if ((waveScore > 0)
-			&& (waveScore % 10 == 0))
-	{
-		mGameScore->defeatWave();
-		int numWavesDefeated = mGameScore->getNumWavesDefeated();
-
-		// Reduce the wait time unless we've hit rock bottom
-		mAsteroidMaxInterval =
-				(mAsteroidMaxInterval <= ABS_MIN_INTERVAL) ? mAsteroidMaxInterval = ABS_MIN_INTERVAL
-						: 1000 - (mAsteroidSpawnInterval * (numWavesDefeated));
-
-		// Raise the max velocity every wave
-		// Raise the min velocity every 2 waves
-		mAsteroidMaxVelocityInterval =
-			(mAsteroidMaxVelocityInterval >= ABS_MAX_VELOCITY) 
-				? ABS_MAX_VELOCITY : mAsteroidMaxVelocityInterval + 1;
-
-		if (numWavesDefeated % 2)
-		{
-			mAsteroidMinVelocityInterval = 
-				(mAsteroidMinVelocityInterval >= ABS_MIN_VELOCITY)
-					? ABS_MIN_VELOCITY : mAsteroidMinVelocityInterval + 1;
-		}
-	}
+	/**
+	  * TODO: Get the current score for the wave.
+	  * Your task here is really to implement your own
+	  * kind of scoring system
+	  */
 	
 	// Fire an asteroid if enough time has passed
 	if (mLastAsteroidTime + mNextAsteroidIntervalWaitTime <= SDL_GetTicks())
@@ -82,11 +60,6 @@ void AsteroidManager::update()
 	// Update my container (ie update the stats and the asteroids array
 	for (int i = 0; i < NUMBER_ASTEROIDS; ++i)
 		mAsteroids[i].get()->update();
-}
-
-void AsteroidManager::recordAsteroidMissed()
-{
-	mGameScore->loseLife();
 }
 
 void AsteroidManager::draw()

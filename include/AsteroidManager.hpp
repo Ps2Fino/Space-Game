@@ -5,14 +5,13 @@
 #include <vector>
 
 #include "RSConstants.hpp"
-#include "Stats.hpp"
 #include "Asteroid.hpp"
 
 class AsteroidManager
 {
 public:
 
-	AsteroidManager(SDL_Renderer *renderer, Stats *stats);
+	AsteroidManager(SDL_Renderer *renderer);
 	~AsteroidManager();
 
 	void update(); // Call this to update the modifiers whenever the player kills a certain number of asteroids
@@ -20,8 +19,6 @@ public:
 	void draw(); // Just really calls draw on all the asteroids
 
 	std::vector<AsteroidPtr>& getAsteroids() { return mAsteroids; } // Return the asteoroids as a const vector
-	void recordAsteroidMissed();
-	void setGameScore(Stats *stats) { mGameScore = stats; }
 
 private:
 	
@@ -37,7 +34,6 @@ private:
 	int mLastAsteroidTime;
 	
 	SDL_Texture *mAsteroidTexture; // The shared texture for the asteroids
-	Stats *mGameScore; // Use this to check whether or not we should update the game modifiers
 	std::vector<AsteroidPtr> mAsteroids; // The manager should look after the asteroids	
 };
 

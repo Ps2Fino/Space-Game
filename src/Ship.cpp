@@ -6,8 +6,6 @@
 	#include <cstdlib>
 #endif
 
-#include "SoundFX.hpp" // For the bullet sounds
-
 Ship::Ship(SDL_Renderer *renderer, std::string &imagePath, std::string &bulletImagePath,
 				int width, int height, int x, int y) 
 					: Sprite(renderer, width, height, x, y), 
@@ -77,8 +75,6 @@ void Ship::fireBullet()
 				if (!currBullet->checkIsActivated())
 				{
 					currBullet->activate(mX_pos, mY_pos - 10);
-					// Play the sound effect
-					SoundFX::playLaserSound();
 					break;
 				}
 			}
@@ -90,7 +86,6 @@ void Ship::fireBullet()
 		if (!currBullet->checkIsActivated())
 		{
 			currBullet->activate(mX_pos, mY_pos - 10);
-			SoundFX::playLaserSound();
 		}
 	}
 }

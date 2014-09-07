@@ -1,7 +1,5 @@
 #include "Asteroid.hpp"
-#include "Stats.hpp"
 #include "RSConstants.hpp"
-
 #include "AsteroidManager.hpp"
 
 // Initialize the static texture variable
@@ -55,9 +53,6 @@ void Asteroid::update(int ev1, int ev2)
 		if (mX_pos < (-1 * ASTEROID_WIDTH))
 		{
 			deactivate();
-
-			// The player should lose a life here
-			mParentManager->recordAsteroidMissed();
 		}
 	}
 }
