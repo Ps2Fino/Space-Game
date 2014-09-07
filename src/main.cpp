@@ -66,8 +66,6 @@ AsteroidManagerPtr asteroidManager;
 
 bool running; // The main program loop variable
 
-GAME_STATE state = MENU; // The state of the game
-
 #ifdef USE_CPP_RANDOM
 // Have a variable delay for the asteroids
 	std::random_device rd; // obtain a random number from hardware
