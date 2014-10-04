@@ -34,10 +34,9 @@ void LifeManager::update()
 
 		// Set the new target
 		int target = rand() % 20 + 1; // Blow up between 1 and 20 asteroids
-//		int target = 5;
 		mAsteroidsToShootForLifeSpawn += target;
 
-		SDL_Log("The new target is: %d\n", mAsteroidsToShootForLifeSpawn);
+//		SDL_Log("The new target is: %d\n", mAsteroidsToShootForLifeSpawn);
 	}
 
 	life.get()->update();
@@ -51,6 +50,12 @@ void LifeManager::shootLife()
 		mGameScore->addLives(numLivesToAdd);
 		life.get()->reset();
 	}
+}
+
+void LifeManager::reset()
+{
+	mAsteroidsToShootForLifeSpawn = 5;
+	life.get()->reset();
 }
 
 void LifeManager::drawLife()

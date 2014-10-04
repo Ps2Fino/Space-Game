@@ -20,7 +20,7 @@ public:
 	void drawLife();
  	void shootLife();
  	Life * getLife() { return life.get(); }
- 	void reset() { life.get()->reset(); }
+ 	void reset(); 
  	void activate() { life.get()->activate(); }
 
 private:
