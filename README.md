@@ -4,6 +4,9 @@ Space-Game
 A small game in SDL. Why not sure :-)
 
 Uses CMake. Beware though, the CMakeLists.txt file is optimized for Mac really (I haven't had the time to try cross compilation for windows)
+The easiest way is to install homebrew, then run the brew_dependencies.sh script to install everything needed.
+After this, run the compile.sh script to build the project.
+This works on a new OSX install, so it should work right off the bat on your machine.
 
 Dependencies
 ============
