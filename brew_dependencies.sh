@@ -10,7 +10,7 @@
 
 brew install cmake
 brew install SDL2
-brew install SDL2_Image
-brew install SDL_Ttf
-brew install SDL2_Mixer --with-libvorbis # Some of the audio assets are oggs, so need the vorbis codec
+brew install SDL2_image
+brew install SDL2_ttf
+brew install SDL2_mixer --with-libvorbis # Some of the audio assets are oggs, so need the vorbis codec
 brew install boost
